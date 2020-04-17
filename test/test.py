@@ -1,3 +1,0 @@
-Robot bot
-
-print(bot)
