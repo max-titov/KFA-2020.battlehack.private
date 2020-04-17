@@ -1,4 +1,7 @@
-class Overlord:
+class Overlord(Robot):
+	
+	def __init__(self, white):
+		Robot.__init__(self, white)
 
 	def turn():
 		dlog('Starting Turn!')

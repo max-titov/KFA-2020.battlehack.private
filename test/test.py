@@ -1,0 +1,3 @@
+Robot bot
+
+print(bot)

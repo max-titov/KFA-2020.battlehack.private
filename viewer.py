@@ -4,7 +4,8 @@ import faulthandler
 import sys
 import threading
 
-from battlehack20 import CodeContainer, Game, BasicViewer, FancyViewer, GameConstants
+from battlehack20 import CodeContainer, Game, BasicViewer, GameConstants
+from fancyviewer import FancyViewer
 
 """
 This is a simple script for running bots and debugging them.
