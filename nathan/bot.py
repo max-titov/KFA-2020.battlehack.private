@@ -1,10 +1,10 @@
 import random
 
-print('i work')
 # This is an example bot written by the developers!
 # Use this to help write your own code, or run it against your bot to see how well you can do!
 
 DEBUG = 1
+maxRows = 3
 def dlog(str):
     if DEBUG > 0:
         log(str)
@@ -42,9 +42,15 @@ def turn():
             forward = 1
         else:
             forward = -1
-
-        # try catpuring pieces
-        if check_space_wrapper(row + forward, col + 1, board_size) == opp_team: # up and right
+        typeDesignation = 3
+        #A type designation of 0 means it is even; 1 means it is odd
+        if col%2 == 0:
+            typeDesignation = 0
+        else:
+            typeDesignation = 1
+        surroundings = sense()
+        # try capturing pieces
+        """if check_space_wrapper(row + forward, col + 1, board_size) == opp_team: # up and right
             capture(row + forward, col + 1)
             dlog('Captured at: (' + str(row + forward) + ', ' + str(col + 1) + ')')
 
@@ -55,9 +61,14 @@ def turn():
         # otherwise try to move forward
         elif row + forward != -1 and row + forward != board_size and not check_space_wrapper(row + forward, col, board_size):
             #               ^  not off the board    ^            and    ^ directly forward is empty
-            move_forward()
+            #move_forward()
             dlog('Moved forward!')
-
+            """
+        #Three forward movement conditions: piece behind, out of line of the lattice, and next to wall
+        coords = [row, col]
+        if checkMoveConditions(typeDesignation, surroundings, forward, team, coords) and row + forward != -1 and row + forward != board_size and not check_space_wrapper(row + forward, col, board_size):
+            move_forward()
+            dlog('Moved forward')
         confusion = "you need a line here to avoid segfault. we aren't sure why but are working on it"
         # ^ I think this is related to the potential ambiguity of what the following else is referring to?
 
@@ -66,14 +77,34 @@ def turn():
             index = 0
         else:
             index = board_size - 1
-
-        for _ in range(board_size):
+            for row in range(maxRows):
+                for i in range(board_size):
+                    if i%2 == row%2:
+                        if not check_space(index,i):
+                            spawn(index, i)
+                            dlog('Spawned unit at: ('+ str(index)+', '+str(i)+')')
+        """for _ in range(board_size):
             i = random.randint(0, board_size - 1)
             if not check_space(index, i):
                 spawn(index, i)
                 dlog('Spawned unit at: (' + str(index) + ', ' + str(i) + ')')
-                break
+                break"""
 
     bytecode = get_bytecode()
     dlog('Done! Bytecode left: ' + str(bytecode))
 
+#Something behind, out of the lattice, next to wall
+def checkMoveConditions(typeD, scan, direction, team, coords):
+    row, col = coords[0], coords[1]
+    if team == Team.BLACK and row == 15:
+        return True
+    elif team == Team.WHITE and row == 0:
+        return True
+    if typeD%2 != row%2:
+        return True
+    tempTuple = scan[row - direction][col]
+    if tempTuple[3] == team:
+        return True
+    return false
+#Run command:
+#python viewer.py nathan nathan
