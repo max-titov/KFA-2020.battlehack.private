@@ -19,7 +19,7 @@ def check_space_wrapper(r, c, board_size):
         return None
 
 latticeRow = 0
-maxRows = 4
+maxRows = 25
 buildCol = 0
 
 def turn():
@@ -56,7 +56,7 @@ def turn():
         surroundings = sense()
 
         # try capturing pieces
-        """if check_space_wrapper(row + forward, col + 1, board_size) == opp_team: # up and right
+        if check_space_wrapper(row + forward, col + 1, board_size) == opp_team: # up and right
             capture(row + forward, col + 1)
             dlog('Captured at: (' + str(row + forward) + ', ' + str(col + 1) + ')')
 
@@ -64,13 +64,13 @@ def turn():
             capture(row + forward, col - 1)
             dlog('Captured at: (' + str(row + forward) + ', ' + str(col - 1) + ')')
 
-        # otherwise try to move forward
+        """# otherwise try to move forward
         elif row + forward != -1 and row + forward != board_size and not check_space_wrapper(row + forward, col, board_size):
             #               ^  not off the board    ^            and    ^ directly forward is empty
             #move_forward()
             dlog('Moved forward!')
-            """
-        dlog('2D dimensions: ' + str(len(surroundings))+', '+str(len(surroundings[0])))
+        """
+        #dlog('2D dimensions: ' + str(len(surroundings))+', '+str(len(surroundings[0])))
         #Three forward movement conditions: piece behind, out of line of the lattice, and next to wall
         coords = [row, col]
         if checkMoveConditions(typeDesignation, surroundings, forward, team, coords):
