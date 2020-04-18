@@ -20,9 +20,6 @@ blackHalfway = 8
 
 #OVERLORD
 
-spawnOrder = [7,8,6,9,10,5,11,4,12,3,13,2,14,1,15,0]
-spawnIndex = 0
-
 sameRowAlliedPawnWeight = -64
 adjacentRowAlliedPawnWeight = 0
 
@@ -36,6 +33,7 @@ sameRowEnemyPawnDistanceMultiplier = -1
 adjacentRowEnemyPawnDistanceMultiplier = -1
 
 enemyOneTileAwayWeight = 1000
+enemyTwoTilesAwayWeight = 700
 enemyOneAdjacentTileAwayWeight = -500
 
 DEBUG = 1
@@ -109,6 +107,12 @@ def check_right2():
 def check_left2():
 	return check_space_wrapper(row + forward*2, col - 1) == opp_team
 
+def check_right_adjacent_ally():
+	return check_space_wrapper(row, col + 1) == team
+
+def check_left_adjacent_ally():
+	return check_space_wrapper(row, col - 1) == team
+
 def capture_right():
 	capture(row + forward, col + 1)
 
@@ -118,42 +122,83 @@ def capture_left():
 def can_move_forward():
 	return row + forward != -1 and row + forward != board_size and not check_space_wrapper(row + forward, col)
 
+def equal_trade_if_move():
+	myPawnCount = 0
+	if check_right_adjacent_ally(): myPawnCount+=1
+	if check_left_adjacent_ally(): myPawnCount+=1
+	enemyPawnCount = 0
+	if check_right2(): enemyPawnCount+=1
+	if check_left2(): enemyPawnCount+=1
+
+	return myPawnCount >= enemyPawnCount and enemyPawnCount>0
+
+def close_to_enemy_side():
+	distance = abs(row-backRow)
+	return distance >= board_size-3
+
+
+def checkMoveConditions(typeD):
+	if row == backRow:
+		return True
+	elif typeD%2 != row%2:
+		return True
+	elif check_space(row-forward, col):
+		return True
+	return False
+
+
 def pawn_turn():
 	global row,col
 	row, col = get_location()
 
-	if team == Team.WHITE:
-		pawn_turn_white()
-	else:
-		pawn_turn_black()
+	# if team == Team.WHITE:
+	# 	pawn_turn_white()
+	# else:
+	# 	pawn_turn_black()
 
+	#A type designation of 0 means it is even; 1 means it is odd    
+	typeDesignation = 3
+	if col%2 == 0:
+		typeDesignation = 0
+	else:
+		typeDesignation = 1
+	surroundings = sense()
+
+	if check_right(): # up and right
+		capture_right()
+
+	elif check_left(): # up and left
+		capture_left()
+
+	if can_move_forward() and (checkMoveConditions(typeDesignation) or close_to_enemy_side()):
+		move_forward()
 
 	confusion = "you need a line here to avoid segfault. we aren't sure why but are working on it"
 	# ^ I think this is related to the potential ambiguity of what the following else is referring to?
 
-def pawn_turn_white():
-	# try catpuring pieces
-	if check_right(): # up and right
-		capture_right()
+# def pawn_turn_white():
+# 	# try catpuring pieces
+# 	if check_right(): # up and right
+# 		capture_right()
 
-	elif check_left(): # up and left
-		capture_left()
+# 	elif check_left(): # up and left
+# 		capture_left()
 
-	# otherwise try to move forward
-	elif can_move_forward():
-		#if row < whiteHalfway:
-		move_forward()
+# 	# otherwise try to move forward
+# 	elif can_move_forward():
+# 		#if row < whiteHalfway:
+# 		move_forward()
 
-def pawn_turn_black():
-	# try catpuring pieces
-	if check_right(): # up and right
-		capture_right()
+# def pawn_turn_black():
+# 	# try catpuring pieces
+# 	if check_right(): # up and right
+# 		capture_right()
 
-	elif check_left(): # up and left
-		capture_left()
+# 	elif check_left(): # up and left
+# 		capture_left()
 
-	elif can_move_forward():
-		move_forward()
+# 	elif can_move_forward():
+# 		move_forward()
 
 ##############################################################
 ########################## OVERLORD ##########################
@@ -206,6 +251,9 @@ def spawn_weights(board): # TODO: add adjecent col to weight value
 		if board[backRow+forward][tempCol] == opp_team: # if opponent pawn is one tile away from back row
 			weights[tempCol] = weights[tempCol] + enemyOneTileAwayWeight 
 		
+		if board[backRow+forward*2][tempCol] == opp_team: # if opponent pawn is two tiles away from back row
+			weights[tempCol] = weights[tempCol] + enemyTwoTilesAwayWeight 
+
 		if tempCol > 0 and board[backRow+forward][tempCol-1] == opp_team: # if opponent pawn is one tile away from back row and one to the left:
 			weights[tempCol] = weights[tempCol] + enemyOneAdjacentTileAwayWeight
 
