@@ -1,2 +1,2 @@
-python -i run.py test2 examplefuncsplayer --raw-text
-python viewer.py test2 examplefuncsplayer --raw-text --delay 0.5
+python -i run.py max examplefuncsplayer --raw-text
+python viewer.py max examplefuncsplayer --raw-text --delay 0.5
