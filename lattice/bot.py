@@ -73,7 +73,7 @@ def turn():
         #dlog('2D dimensions: ' + str(len(surroundings))+', '+str(len(surroundings[0])))
         #Three forward movement conditions: piece behind, out of line of the lattice, and next to wall
         coords = [row, col]
-        if checkMoveConditions(typeDesignation, surroundings, forward, team, coords):
+        if checkMoveConditions(typeDesignation, team, coords):
             move_forward()
             dlog('Moved forward')
         confusion = "you need a line here to avoid segfault. we aren't sure why but are working on it"
@@ -111,7 +111,7 @@ def turn():
         dlog('Done! Bytecode left: ' + str(bytecode))
 
 #Something behind, out of the lattice, next to wall
-def checkMoveConditions(typeD, scan, direction, team, coords):
+def checkMoveConditions(typeD, team, coords):
     row, col = coords[0], coords[1]
     if team == Team.BLACK:
         if row == 15:
