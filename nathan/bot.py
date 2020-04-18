@@ -68,9 +68,10 @@ def turn():
             #move_forward()
             dlog('Moved forward!')
             """
+        #dlog('2D dimensions: ' + str(len(surroundings))+', '+str(len(surroundings[0])))
         #Three forward movement conditions: piece behind, out of line of the lattice, and next to wall
         coords = [row, col]
-        if checkMoveConditions(typeDesignation, surroundings, forward, team, coords) and row + forward != -1 and row + forward != board_size and not check_space_wrapper(row + forward, col, board_size):
+        if checkMoveConditions(typeDesignation, surroundings, forward, team, coords): #and row + forward != -1 and row + forward != board_size and not check_space_wrapper(row + forward, col, board_size):
             move_forward()
             dlog('Moved forward')
         confusion = "you need a line here to avoid segfault. we aren't sure why but are working on it"
@@ -83,14 +84,18 @@ def turn():
             index = board_size - 1
         
             if latticeRow < maxRows:
-                if buildCol%2 == latticeRow%2:
-                    if not check_space(index, buildCol):
-                        spawn(index, buildCol)
-                        dlog('Spawned unit at: (' + str(index) + ', ' + str(buildCol) + ')')
-                buildCol += 1
+                if not check_space(index, buildCol):
+                    spawn(index, buildCol)
+                    dlog('Spawned unit at: (' + str(index) + ', ' + str(buildCol) + ')')
+                buildCol += 2
+                dlog('buidCol value:' + str(buildCol))
                 if buildCol > 15:
-                    buildCol = 0
-                    latticeRow += 1
+                    dlog('latticeRow value:' + str(latticeRow))
+                    latticeRow+=1
+                    if latticeRow%2==0:
+                        buildCol = 0
+                    else:
+                        buildCol = 1
 
 
             """for _ in range(board_size):
@@ -112,9 +117,10 @@ def checkMoveConditions(typeD, scan, direction, team, coords):
         return True
     if typeD%2 != row%2:
         return True
-    tempTuple = scan[7]
-    if tempTuple[2] == team:
-        return True
+    #tempTuple = scan[7]
+    #if tempTuple[2] == team:
+        #return True
     return False
 #Run command:
 #python viewer.py nathan nathan
+#python -i run.py nathan nathan --raw-text
