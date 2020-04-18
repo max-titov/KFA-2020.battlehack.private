@@ -4,7 +4,6 @@ import random
 # Use this to help write your own code, or run it against your bot to see how well you can do!
 
 DEBUG = 1
-maxRows = 3
 def dlog(str):
     if DEBUG > 0:
         log(str)
@@ -19,7 +18,12 @@ def check_space_wrapper(r, c, board_size):
     except:
         return None
 
+latticeRow = 0
+maxRows = 4
+buildCol = 0
+
 def turn():
+    global latticeRow, maxRows, buildCol
     """
     MUST be defined for robot to run
     This function will be called at the beginning of every turn and should contain the bulk of your robot commands
@@ -77,21 +81,27 @@ def turn():
             index = 0
         else:
             index = board_size - 1
-            for row in range(maxRows):
-                for i in range(board_size):
-                    if i%2 == row%2:
-                        if not check_space(index,i):
-                            spawn(index, i)
-                            dlog('Spawned unit at: ('+ str(index)+', '+str(i)+')')
-        """for _ in range(board_size):
-            i = random.randint(0, board_size - 1)
-            if not check_space(index, i):
-                spawn(index, i)
-                dlog('Spawned unit at: (' + str(index) + ', ' + str(i) + ')')
-                break"""
+        
+            if latticeRow < maxRows:
+                if buildCol%2 == latticeRow%2:
+                    if not check_space(index, buildCol):
+                        spawn(index, buildCol)
+                        dlog('Spawned unit at: (' + str(index) + ', ' + str(buildCol) + ')')
+                buildCol += 1
+                if buildCol > 15:
+                    buildCol = 0
+                    latticeRow += 1
 
-    bytecode = get_bytecode()
-    dlog('Done! Bytecode left: ' + str(bytecode))
+
+            """for _ in range(board_size):
+                i = random.randint(0, board_size - 1)
+                if not check_space(index, i):
+                    spawn(index, i)
+                    dlog('Spawned unit at: (' + str(index) + ', ' + str(i) + ')')
+                    break"""
+
+        bytecode = get_bytecode()
+        dlog('Done! Bytecode left: ' + str(bytecode))
 
 #Something behind, out of the lattice, next to wall
 def checkMoveConditions(typeD, scan, direction, team, coords):
@@ -102,9 +112,9 @@ def checkMoveConditions(typeD, scan, direction, team, coords):
         return True
     if typeD%2 != row%2:
         return True
-    tempTuple = scan[row - direction][col]
-    if tempTuple[3] == team:
+    tempTuple = scan[7]
+    if tempTuple[2] == team:
         return True
-    return false
+    return False
 #Run command:
 #python viewer.py nathan nathan
