@@ -35,6 +35,9 @@ adjacentRowAlliedPawnDistanceMultiplier = 0
 sameRowEnemyPawnDistanceMultiplier = -1
 adjacentRowEnemyPawnDistanceMultiplier = -1
 
+enemyOneTileAwayWeight = 1000
+enemyOneAdjacentTileAwayWeight = -500
+
 DEBUG = 1
 def dlog(str):
 	if DEBUG > 0:
@@ -65,19 +68,22 @@ def turn():
 	dlog('Done! Bytecode left: ' + str(bytecode))
 
 def init():
-	global board_size, team, opp_team, robottype, backRow
+	global board_size, team, opp_team, robottype, backRow, forward
 
 	board_size = get_board_size()
 
 	team = get_team()
-	opp_team = Team.WHITE if team == Team.BLACK else team.BLACK
 
 	robottype = get_type()
 
 	if team == Team.WHITE:
 		backRow = 0
+		forward = 1
+		opp_team = Team.BLACK
 	else:
 		backRow = board_size - 1
+		forward = -1
+		opp_team = Team.WHITE
 
 	if robottype == RobotType.PAWN:
 		pawn_init()
@@ -89,18 +95,19 @@ def init():
 ##############################################################
 
 def pawn_init():
-	global forward
-
-	if team == Team.WHITE:
-		forward = 1
-	else:
-		forward = -1
+	return
 
 def check_right():
 	return check_space_wrapper(row + forward, col + 1) == opp_team
 
 def check_left():
 	return check_space_wrapper(row + forward, col - 1) == opp_team
+
+def check_right2():
+	return check_space_wrapper(row + forward*2, col + 1) == opp_team
+
+def check_left2():
+	return check_space_wrapper(row + forward*2, col - 1) == opp_team
 
 def capture_right():
 	capture(row + forward, col + 1)
@@ -166,8 +173,8 @@ def spawn_weights(board): # TODO: add adjecent col to weight value
 
 		#check same col
 		for tempRow in range(board_size):
-			pawn = check_space(tempRow, tempCol)
-			if pawn != False: # there is a pawn
+			pawn = board[tempRow][tempCol]
+			if pawn != None: # there is a pawn
 				distance = abs(tempRow-backRow) # distance to pawn from your back row
 				if pawn == team: # your pawn
 					weights[tempCol] = weights[tempCol] + sameRowAlliedPawnWeight + sameRowAlliedPawnDistanceMultiplier * distance
@@ -175,10 +182,10 @@ def spawn_weights(board): # TODO: add adjecent col to weight value
 					weights[tempCol] = weights[tempCol] + sameRowEnemyPawnWeight + sameRowEnemyPawnDistanceMultiplier * distance
 
 		#check left adjacent col
-		if(tempCol > 0):
+		if tempCol > 0:
 			for tempRow in range(board_size):
-				pawn = check_space(tempRow, tempCol-1)
-				if pawn != False: # there is a pawn
+				pawn = board[tempRow][tempCol-1]
+				if pawn != None: # there is a pawn
 					distance = abs(tempRow-backRow) # distance to pawn from your back row
 					if pawn == team: # your pawn
 						weights[tempCol] = weights[tempCol] + adjacentRowAlliedPawnWeight + adjacentRowAlliedPawnDistanceMultiplier * distance
@@ -186,15 +193,25 @@ def spawn_weights(board): # TODO: add adjecent col to weight value
 						weights[tempCol] = weights[tempCol] + adjacentRowEnemyPawnWeight + adjacentRowEnemyPawnDistanceMultiplier * distance
 
 		#check right adjacent col
-		if(tempCol < board_size-1):
+		if tempCol < board_size-1:
 			for tempRow in range(board_size):
-				pawn = check_space(tempRow, tempCol+1)
-				if pawn != False: # there is a pawn
+				pawn = board[tempRow][tempCol+1]
+				if pawn != None: # there is a pawn
 					distance = abs(tempRow-backRow) # distance to pawn from your back row
 					if pawn == team: # your pawn
 						weights[tempCol] = weights[tempCol] + adjacentRowAlliedPawnWeight + adjacentRowAlliedPawnDistanceMultiplier * distance
 					else: # enemy pawn
 						weights[tempCol] = weights[tempCol] + adjacentRowEnemyPawnWeight + adjacentRowEnemyPawnDistanceMultiplier * distance
+		
+		if board[backRow+forward][tempCol] == opp_team: # if opponent pawn is one tile away from back row
+			weights[tempCol] = weights[tempCol] + enemyOneTileAwayWeight 
+		
+		if tempCol > 0 and board[backRow+forward][tempCol-1] == opp_team: # if opponent pawn is one tile away from back row and one to the left:
+			weights[tempCol] = weights[tempCol] + enemyOneAdjacentTileAwayWeight
+
+		if tempCol < board_size-1 and board[backRow+forward][tempCol+1] == opp_team: # if opponent pawn is one tile away from back row and one to the right:
+			weights[tempCol] = weights[tempCol] + enemyOneAdjacentTileAwayWeight
+
 	return weights
 
 def maxIndex(list):
