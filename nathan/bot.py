@@ -46,13 +46,15 @@ def turn():
             forward = 1
         else:
             forward = -1
+
+        #A type designation of 0 means it is even; 1 means it is odd    
         typeDesignation = 3
-        #A type designation of 0 means it is even; 1 means it is odd
         if col%2 == 0:
             typeDesignation = 0
         else:
             typeDesignation = 1
         surroundings = sense()
+
         # try capturing pieces
         """if check_space_wrapper(row + forward, col + 1, board_size) == opp_team: # up and right
             capture(row + forward, col + 1)
@@ -68,10 +70,10 @@ def turn():
             #move_forward()
             dlog('Moved forward!')
             """
-        #dlog('2D dimensions: ' + str(len(surroundings))+', '+str(len(surroundings[0])))
+        dlog('2D dimensions: ' + str(len(surroundings))+', '+str(len(surroundings[0])))
         #Three forward movement conditions: piece behind, out of line of the lattice, and next to wall
         coords = [row, col]
-        if checkMoveConditions(typeDesignation, surroundings, forward, team, coords): #and row + forward != -1 and row + forward != board_size and not check_space_wrapper(row + forward, col, board_size):
+        if checkMoveConditions(typeDesignation, surroundings, forward, team, coords):
             move_forward()
             dlog('Moved forward')
         confusion = "you need a line here to avoid segfault. we aren't sure why but are working on it"
@@ -111,15 +113,21 @@ def turn():
 #Something behind, out of the lattice, next to wall
 def checkMoveConditions(typeD, scan, direction, team, coords):
     row, col = coords[0], coords[1]
-    if team == Team.BLACK and row == 15:
-        return True
-    elif team == Team.WHITE and row == 0:
-        return True
-    if typeD%2 != row%2:
-        return True
-    #tempTuple = scan[7]
-    #if tempTuple[2] == team:
-        #return True
+    if team == Team.BLACK:
+        if row == 15:
+            return True
+        elif typeD%2 != row%2:
+            return True
+        elif check_space(row+1, col):
+            return True
+    
+    elif team == Team.WHITE:
+        if row == 0:
+            return True
+        elif typeD%2 != row%2:
+            return True
+        elif check_space(row-1, col):
+            return True
     return False
 #Run command:
 #python viewer.py nathan nathan
