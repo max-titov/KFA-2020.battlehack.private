@@ -83,7 +83,7 @@ if __name__ == '__main__':
     parser.add_argument('player', nargs='+', help="Path to a folder containing a bot.py file.")
     parser.add_argument('--basic-viewer', action='store_true', help="Prints out viewer in the terminal.")
     parser.add_argument('--raw-text', action='store_true', help="Makes playback text-only in terminal by disabling colors and cursor movements.")
-    parser.add_argument('--delay', default=0.8, help="Playback delay in seconds.")
+    parser.add_argument('--delay', default=0.2, help="Playback delay in seconds.")
     parser.add_argument('--debug', default='true', choices=('true','false'), help="In debug mode (defaults to true), bot logs and additional information are displayed.")
     parser.add_argument('--max-rounds', default=GameConstants.MAX_ROUNDS, type=int, help="Override the max number of rounds for faster games.")
     parser.add_argument('--board-size', default=GameConstants.BOARD_SIZE, type=int, help="Override the board size for faster games.")
