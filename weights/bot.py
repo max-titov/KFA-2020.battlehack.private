@@ -129,8 +129,8 @@ def can_move_forward():
 
 def equal_trade_if_move():
 	myPawnCount = 0
-	if check_right_adjacent_ally(): myPawnCount+=1
-	if check_left_adjacent_ally(): myPawnCount+=1
+	if check_right_adjacent_ally() and check_space_wrapper(row+forward, col + 2): myPawnCount+=1
+	if check_left_adjacent_ally() and check_space_wrapper(row+forward, col - 2): myPawnCount+=1
 	enemyPawnCount = 0
 	if check_right2(): enemyPawnCount+=1
 	if check_left2(): enemyPawnCount+=1
@@ -270,6 +270,6 @@ def overlord_turn():
 	# 	if not check_space(backRow, i):
 	# 		spawn(backRow, i)
 	# 		break
-# python minimal.py weights lattice_weights --debug false
+# python minimal.py weights lattice_weights --debug false --games 10
 # python viewer.py weights examplefuncsplayer --delay 0.5
 # python -i run.py weights examplefuncsplayer --raw-text
