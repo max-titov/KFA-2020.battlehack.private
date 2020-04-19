@@ -65,7 +65,7 @@ def play_all(code_container1,code_container2,args):
                 break
             game.turn()
 
-        if str(game.winner) is "Team.WHITE":
+        if str(game.winner) == "Team.WHITE":
             white_wins+=1
         else:
             black_wins+=1
