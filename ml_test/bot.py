@@ -151,9 +151,8 @@ def pawn_turn():
 			first_layer.append(0)
 
 
-	test_weights = [[random.randint(0,20) for x in range(75)] for y in range(20)]
-	test_bias = [random.randint(0,20) for x in range(20)]
-	dlog(str(test_bias))
+	test_weights = [[random.randint(0,10) for x in range(75)] for y in range(20)]
+	test_bias = [random.randint(0,10) for x in range(20)]
 	second_layer = []
 
 	second_layer_len = 20
@@ -163,7 +162,19 @@ def pawn_turn():
 		for j in range(len(first_layer)):
 			value += first_layer[j] * test_weights[i][j]
 		second_layer.append(value)
-	dlog(str(second_layer))
+	dlog('Second layer values: ' + str(second_layer))
+
+	#third layer
+	second_weights = [[random.randint(0,10) for x in range(20)] for y in range(2)]
+	second_bias = [random.randint(0,10) for x in range(2)]
+	output_layer = []
+	output_layer_len = 2
+	for i in range(output_layer_len):
+		tempValue = second_bias[i]
+		for j in range(second_layer_len):
+			tempValue += second_layer[j] * second_weights[i][j]
+		output_layer.append(value)
+	dlog('Output layer values: ' + str(output_layer))
 
 	#if check_right(): # up and right
 		#capture_right()
