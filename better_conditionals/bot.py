@@ -40,7 +40,7 @@ enemyOneTileAwayWeight = 1000
 enemyTwoTilesAwayWeight = 700
 enemyOneAdjacentTileAwayWeight = -500
 
-DEBUG = 1
+DEBUG = 0
 def dlog(str):
 	if DEBUG > 0:
 		log(str)
@@ -148,7 +148,7 @@ def map_surroundings():
 	else:
 		colorMultiplier = 1
 	tempRow = 0
-	while tempRow < scanRows:
+	for tempRow in range(scanRows):
 		colTemp = -2
 		for tempCol in range(scanCols):
 			space_check = check_space_wrapper(row - (tempRow + 1), col + colTemp)
@@ -159,18 +159,55 @@ def map_surroundings():
 			#dlog('Space_check: ' + str(space_check))
 			#dlog('Coords: ('+str(row-(tempRow+1))+', '+str(col + colTemp)+')')
 			colTemp += 1
-		tempRow += 1
 
+def adjacent_in_danger(coords):
+	global row, col
+	if team == Team.BLACK:
+		colorMultiplier = -1
+	else:
+		colorMultiplier = 1
+	adjRow, adjCol = coords[0], coords[1]
+	if check_space_wrapper(row + (colorMultiplier*1), col +1) != opp_team:
+		return False
+	elif check_space_wrapper(row + (colorMultiplier*1), col -1) != opp_team:
+		return False
+	return True
 
 #Check to see if waiting to strike is the optimal move
 def wait_for_kill():
 	global row, col, surroundingsMap
+	adjacentTeam = 0
+	enemyCount = 0
+	if team == Team.BLACK:
+		colorMultiplier = -1
+	else:
+		colorMultiplier = 1
+	if check_space_wrapper(row, col + 1) == team:
+		adjacentTeam += 1
+		if adjacent_in_danger([row, col+1]) == False:
+			return False
+	if check_space_wrapper(row, col -1) == team:
+		adjacentTeam += 1
+		if adjacent_in_danger([row, col-1]) == False:
+			return False
+	if adjacentTeam == 0:
+		return False
+	if check_space_wrapper(row + (2*colorMultiplier), col) == opp_team:
+		enemyCount += 1
+	#This will need editing:	
+	if check_space_wrapper(row + (2*colorMultiplier), col + 2) == opp_team or check_space_wrapper(row + (2*colorMultiplier), col - 2) == opp_team:
+		enemyCount += 1
+	if adjacentTeam > enemyCount:
+		return True
+	return False
+
+
 
 def pawn_turn():
 	global row,col
 	row, col = get_location()
 	map_surroundings()
-	dlog(str(surroundingsMap))
+	#dlog(str(surroundingsMap))
 	dlog(str([row, col]))
 	if check_right(): # up and right
 		capture_right()
@@ -179,6 +216,9 @@ def pawn_turn():
 		capture_left()
 
 	# otherwise try to move forward
+	elif wait_for_kill():
+		dlog('waited for the kill')
+
 	elif can_move_forward() and (equal_trade_if_move() or close_to_enemy_side()):
 		#if row < whiteHalfway:
 		move_forward()
