@@ -9,6 +9,7 @@ team = None
 opp_team = None
 robottype = None
 backRow = 0
+row, col = 0,0
 
 #PAWN
 
@@ -122,7 +123,7 @@ def close_to_enemy_side():
 	return distance >= board_size-3
 
 def pawn_turn():
-	#global row,col
+	global row,col
 	row, col = get_location()
 
 	first_layer = []
@@ -161,7 +162,7 @@ def pawn_turn():
 		for j in range(len(first_layer)):
 			value += first_layer[j] * test_weights[i][j]
 		second_layer.append(value)
-	dlog('Second layer values: ' + str(second_layer))
+	#dlog('Second layer values: ' + str(second_layer))
 
 	#third layer
 	output_layer = []
@@ -173,18 +174,20 @@ def pawn_turn():
 		for j in range(second_layer_len):
 			tempValue += second_layer[j] * second_weights[i][j]
 		output_layer.append(tempValue)
-	dlog('Output layer values: ' + str(output_layer))
+	#dlog('Output layer values: ' + str(output_layer))
 	
-	#if check_right(): # up and right
-		#capture_right()
+	if check_right(): # up and right
+		capture_right()
 
-	#elif check_left(): # up and left
-		#capture_left()
+	elif check_left(): # up and left
+		capture_left()
 
 	# otherwise try to move forward
-	#elif can_move_forward():
+	elif can_move_forward() and output_layer[0] > output_layer[1]:
 		#if row < whiteHalfway:
-		#move_forward()
+		move_forward()
+	else:
+		dlog('I did nothing')
 	confusion = "you need a line here to avoid segfault. we aren't sure why but are working on it"
 	# ^ I think this is related to the potential ambiguity of what the following else is referring to?
 
