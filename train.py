@@ -4,10 +4,20 @@ import faulthandler
 import sys
 import threading
 import random
+import numpy as np
 
 from battlehack20 import CodeContainer, Game, BasicViewer, GameConstants
 
+generation_size = 120
 
+input_count = 75
+hidden_count = 20
+output_count = 2
+
+pawn_bias_L1 = np.zeroes([generation_size, hidden_count, input_count])
+pawn_weights_L1 = np.zeroes([generation_size, hidden_count, input_count])
+pawn_bias_L2 = np.zeroes([generation_size, output_count, hidden_count])
+pawn_weights_L2 = np.zeroes([generation_size, output_count, hidden_count])
 
 
 def train(code_container1,code_container2,args):
