@@ -126,6 +126,7 @@ def capture_left():
 
 def can_move_forward():
 	return row + forward != -1 and row + forward != board_size and not check_space_wrapper(row + forward, col)
+
 def equal_trade_if_move():
 	myPawnCount = 0
 	if check_right_adjacent_ally(): myPawnCount+=1
@@ -140,9 +141,22 @@ def close_to_enemy_side():
 	distance = abs(row-backRow)
 	return distance >= board_size-3
 
+def protecting_ally():
+	if check_space_wrapper(row, col+1) == team: #ally to the right
+		dlog("ally to the right")
+		if check_space_wrapper(row+forward*2, col) == opp_team or check_space_wrapper(row+forward*2, col+2) == opp_team: #enemy ally will be under attack
+			return True
+	elif check_space_wrapper(row, col-1) == team: #ally to the left
+		dlog("ally to the left")	
+		if check_space_wrapper(row+forward*2, col) == opp_team or check_space_wrapper(row+forward*2, col-2) == opp_team: #enemy ally will be under attack
+			return True
+	return False
+
 def pawn_turn():
 	global row,col
 	row, col = get_location()
+
+	dlog(str(protecting_ally()))
 
 	if check_right(): # up and right
 		capture_right()
@@ -151,9 +165,10 @@ def pawn_turn():
 		capture_left()
 
 	# otherwise try to move forward
-	elif can_move_forward() and (equal_trade_if_move() or close_to_enemy_side()):
+	elif (can_move_forward() and ((equal_trade_if_move() and not protecting_ally()) or close_to_enemy_side())):
 		#if row < whiteHalfway:
 		move_forward()
+	
 	confusion = "you need a line here to avoid segfault. we aren't sure why but are working on it"
 	# ^ I think this is related to the potential ambiguity of what the following else is referring to?
 
@@ -255,3 +270,6 @@ def overlord_turn():
 	# 	if not check_space(backRow, i):
 	# 		spawn(backRow, i)
 	# 		break
+# python minimal.py weights lattice_weights --debug false
+# python viewer.py weights examplefuncsplayer --delay 0.5
+# python -i run.py weights examplefuncsplayer --raw-text
