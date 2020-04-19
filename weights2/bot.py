@@ -146,7 +146,7 @@ def equal_trade_if_move():
 	if check_right2(): enemyPawnCount+=1
 	if check_left2(): enemyPawnCount+=1
 
-	return myPawnCount >= enemyPawnCount
+	return enemyPawnCount == 0 or myPawnCount > enemyPawnCount 
 
 def close_to_enemy_side():
 	distance = abs(row-backRow)

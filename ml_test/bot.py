@@ -48,6 +48,10 @@ def check_space_wrapper(r, c):
 		return None
 
 def turn():
+	f = open("test.txt","r")
+	contents = f.read()
+	dlog(contents)
+
 	if robottype is None:
 		init()
 
