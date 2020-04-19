@@ -125,7 +125,7 @@ def close_to_enemy_side():
 	return distance >= board_size-3
 
 def pawn_turn():
-	global row,col
+	#global row,col
 	row, col = get_location()
 
 	first_layer = []
@@ -138,16 +138,26 @@ def pawn_turn():
 				if pawn == team:
 					first_layer.append(1)
 					first_layer.append(0)
+					first_layer.append(0)
 				elif pawn == opp_team:
 					first_layer.append(0)
 					first_layer.append(1)
+					first_layer.append(0)
 				else:
 					first_layer.append(0)
 					first_layer.append(0)
+					first_layer.append(1)
+		first_layer.append(row)
+		first_layer.append(col)
+		if col == 0 or col == 15:
+			first_layer.append(1)
+		else:
+			first_layer.append(0)
 
-	test_weights = [1]*len(first_layer)
-	test_bias = [1]*len(first_layer)
 
+	test_weights = [[random.randint(0,20) for x in range(75)] for y in range(20)]
+	test_bias = [random.randint(0,20) for x in range(20)]
+	dlog(str(test_bias))
 	second_layer = []
 
 	second_layer_len = 20
@@ -155,20 +165,20 @@ def pawn_turn():
 	for i in range(second_layer_len):
 		value = test_bias[i]
 		for j in range(len(first_layer)):
-			value += first_layer[j] * test_weights[j]
+			value += first_layer[j] * test_weights[i][j]
 		second_layer.append(value)
+	dlog(str(second_layer))
 
+	#if check_right(): # up and right
+		#capture_right()
 
-	if check_right(): # up and right
-		capture_right()
-
-	elif check_left(): # up and left
-		capture_left()
+	#elif check_left(): # up and left
+		#capture_left()
 
 	# otherwise try to move forward
-	elif can_move_forward():
+	#elif can_move_forward():
 		#if row < whiteHalfway:
-		move_forward()
+		#move_forward()
 	confusion = "you need a line here to avoid segfault. we aren't sure why but are working on it"
 	# ^ I think this is related to the potential ambiguity of what the following else is referring to?
 

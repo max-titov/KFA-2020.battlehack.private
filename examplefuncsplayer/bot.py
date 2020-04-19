@@ -1,9 +1,10 @@
 import random
+import pand
 
 # This is an example bot written by the developers!
 # Use this to help write your own code, or run it against your bot to see how well you can do!
 
-DEBUG = 0
+DEBUG = 1
 def dlog(str):
     if DEBUG > 0:
         log(str)
@@ -65,7 +66,8 @@ def turn():
             index = 0
         else:
             index = board_size - 1
-
+        with open('test.txt', 'r') as f:
+            dlog(f.readline())
         for _ in range(board_size):
             i = random.randint(0, board_size - 1)
             if not check_space(index, i):
