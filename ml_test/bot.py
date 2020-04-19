@@ -16,6 +16,21 @@ sensor_radius = 2
 
 #OVERLORD
 
+sameRowAlliedPawnWeight = -64
+adjacentRowAlliedPawnWeight = 0
+
+sameRowEnemyPawnWeight = 16
+adjacentRowEnemyPawnWeight = 16
+
+sameRowAlliedPawnDistanceMultiplier = 1
+adjacentRowAlliedPawnDistanceMultiplier = 0
+
+sameRowEnemyPawnDistanceMultiplier = -1
+adjacentRowEnemyPawnDistanceMultiplier = -1
+
+enemyOneTileAwayWeight = 1000
+enemyTwoTilesAwayWeight = 700
+enemyOneAdjacentTileAwayWeight = -500
 
 DEBUG = 1
 def dlog(str):
@@ -114,8 +129,30 @@ def pawn_turn():
 		for i in range(-sensor_radius, sensor_radius+1):
 			for j in range(-sensor_radius, sensor_radius+1):
 				if i == 0 and j == 0:
-					
+					continue
+				pawn = check_space_wrapper(row+i, col+j)
+				if pawn == team:
+					first_layer.append(1)
+					first_layer.append(0)
+				elif pawn == opp_team:
+					first_layer.append(0)
+					first_layer.append(1)
+				else:
+					first_layer.append(0)
+					first_layer.append(0)
 
+	test_weights = [1]*len(first_layer)
+	test_bias = [1]*len(first_layer)
+
+	second_layer = []
+
+	second_layer_len = 20
+
+	for i in range(second_layer_len):
+		value = test_bias[i]
+		for j in range(len(first_layer)):
+			value += first_layer[j] * test_weights[j]
+		second_layer.append(value)
 
 
 	if check_right(): # up and right
@@ -125,7 +162,7 @@ def pawn_turn():
 		capture_left()
 
 	# otherwise try to move forward
-	elif can_move_forward() and (equal_trade_if_move() or close_to_enemy_side()):
+	elif can_move_forward():
 		#if row < whiteHalfway:
 		move_forward()
 	confusion = "you need a line here to avoid segfault. we aren't sure why but are working on it"
@@ -143,24 +180,95 @@ def overlord_init():
 		backRow = board_size - 1
 
 
+def spawn_weights(board): # TODO: add adjecent col to weight value
+	weights = []
+	for tempCol in range(board_size):
+		weights.append(0)
+
+		#check same col
+		for tempRow in range(board_size):
+			pawn = board[tempRow][tempCol]
+			if pawn != None: # there is a pawn
+				distance = abs(tempRow-backRow) # distance to pawn from your back row
+				if pawn == team: # your pawn
+					weights[tempCol] = weights[tempCol] + sameRowAlliedPawnWeight + sameRowAlliedPawnDistanceMultiplier * distance
+				else: # enemy pawn
+					weights[tempCol] = weights[tempCol] + sameRowEnemyPawnWeight + sameRowEnemyPawnDistanceMultiplier * distance
+
+		#check left adjacent col
+		if tempCol > 0:
+			for tempRow in range(board_size):
+				pawn = board[tempRow][tempCol-1]
+				if pawn != None: # there is a pawn
+					distance = abs(tempRow-backRow) # distance to pawn from your back row
+					if pawn == team: # your pawn
+						weights[tempCol] = weights[tempCol] + adjacentRowAlliedPawnWeight + adjacentRowAlliedPawnDistanceMultiplier * distance
+					else: # enemy pawn
+						weights[tempCol] = weights[tempCol] + adjacentRowEnemyPawnWeight + adjacentRowEnemyPawnDistanceMultiplier * distance
+
+		#check right adjacent col
+		if tempCol < board_size-1:
+			for tempRow in range(board_size):
+				pawn = board[tempRow][tempCol+1]
+				if pawn != None: # there is a pawn
+					distance = abs(tempRow-backRow) # distance to pawn from your back row
+					if pawn == team: # your pawn
+						weights[tempCol] = weights[tempCol] + adjacentRowAlliedPawnWeight + adjacentRowAlliedPawnDistanceMultiplier * distance
+					else: # enemy pawn
+						weights[tempCol] = weights[tempCol] + adjacentRowEnemyPawnWeight + adjacentRowEnemyPawnDistanceMultiplier * distance
+		
+		if board[backRow+forward][tempCol] == opp_team: # if opponent pawn is one tile away from back row
+			weights[tempCol] = weights[tempCol] + enemyOneTileAwayWeight 
+		
+		if board[backRow+forward*2][tempCol] == opp_team: # if opponent pawn is two tiles away from back row
+			weights[tempCol] = weights[tempCol] + enemyTwoTilesAwayWeight 
+
+		if tempCol > 0 and board[backRow+forward][tempCol-1] == opp_team: # if opponent pawn is one tile away from back row and one to the left:
+			weights[tempCol] = weights[tempCol] + enemyOneAdjacentTileAwayWeight
+
+		if tempCol < board_size-1 and board[backRow+forward][tempCol+1] == opp_team: # if opponent pawn is one tile away from back row and one to the right:
+			weights[tempCol] = weights[tempCol] + enemyOneAdjacentTileAwayWeight
+
+	return weights
+
+def maxIndex(list):
+	maxNum = list[0]
+	maxIndex = 0
+	for i in range(len(list)):
+		if list[i] > maxNum:
+			maxIndex = i
+			maxNum = list[i]
+	return maxIndex
+
 def overlord_turn():
 	board = get_board()
+	weights = spawn_weights(board)
 	
-	allied_list = []
-	enemy_list = []
+	debug = ''
+	for i in range(board_size):
+		debug = debug + str(weights[i]) + ' '
+	dlog(debug)
 
-	for tempCol in range(board_size):
-		for tempRow in range(board_size):
-			temp = board[tempCol][tempRow]
-			if temp == opp_team:
-				allied_list.append(0)
-				enemy_list.append(1)
-			elif temp == team:
-				allied_list.append(1)
-				enemy_list.append(0)
-			else:
-				allied_list.append(0)
-				enemy_list.append(0)
+	for i in range(board_size):
+		maxWeightCol = maxIndex(weights)
+		if not check_space(backRow, maxWeightCol):
+			spawn(backRow, maxWeightCol)
+			break
+		else:
+			weights[maxWeightCol] = -100000
+
+	# for tempCol in range(board_size):
+	# 	for tempRow in range(board_size):
+	# 		temp = board[tempCol][tempRow]
+	# 		if temp == opp_team:
+	# 			allied_list.append(0)
+	# 			enemy_list.append(1)
+	# 		elif temp == team:
+	# 			allied_list.append(1)
+	# 			enemy_list.append(0)
+	# 		else:
+	# 			allied_list.append(0)
+	# 			enemy_list.append(0)
 
 
 

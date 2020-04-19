@@ -9,6 +9,7 @@ team = None
 opp_team = None
 robottype = None
 backRow = 0
+enemyBackRow = 0
 
 #PAWN
 
@@ -35,6 +36,8 @@ adjacentRowEnemyPawnDistanceMultiplier = -1
 enemyOneTileAwayWeight = 1000
 enemyTwoTilesAwayWeight = 700
 enemyOneAdjacentTileAwayWeight = -500
+
+alliedPawnAtEndWeight = -100
 
 DEBUG = 0
 def dlog(str):
@@ -76,10 +79,12 @@ def init():
 
 	if team == Team.WHITE:
 		backRow = 0
+		enemyBackRow = board_size-1
 		forward = 1
 		opp_team = Team.BLACK
 	else:
 		backRow = board_size - 1
+		enemyBackRow = 0
 		forward = -1
 		opp_team = Team.WHITE
 
@@ -211,6 +216,9 @@ def spawn_weights(board): # TODO: add adjecent col to weight value
 
 		if tempCol < board_size-1 and board[backRow+forward][tempCol+1] == opp_team: # if opponent pawn is one tile away from back row and one to the right:
 			weights[tempCol] = weights[tempCol] + enemyOneAdjacentTileAwayWeight
+
+		if board[enemyBackRow][tempCol] == team: #if allied pawn is at the end
+			weights[tempCol] = weights[tempCol] + alliedPawnAtEndWeight
 
 	return weights
 
