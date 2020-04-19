@@ -129,8 +129,8 @@ def can_move_forward():
 
 def equal_trade_if_move():
 	myPawnCount = 0
-	if check_right_adjacent_ally() and check_space_wrapper(row+forward, col + 2): myPawnCount+=1
-	if check_left_adjacent_ally() and check_space_wrapper(row+forward, col - 2): myPawnCount+=1
+	if check_right_adjacent_ally() and not check_space_wrapper(row+forward, col + 2) == opp_team: myPawnCount+=1
+	if check_left_adjacent_ally() and not check_space_wrapper(row+forward, col - 2) == opp_team: myPawnCount+=1
 	enemyPawnCount = 0
 	if check_right2(): enemyPawnCount+=1
 	if check_left2(): enemyPawnCount+=1
@@ -142,13 +142,13 @@ def close_to_enemy_side():
 	return distance >= board_size-3
 
 def protecting_ally():
-	if check_space_wrapper(row, col+1) == team: #ally to the right
+	if check_space_wrapper(row, col+1) == team or check_space_wrapper(row+forward, col+1) == team: #ally to the right
 		dlog("ally to the right")
-		if check_space_wrapper(row+forward*2, col) == opp_team or check_space_wrapper(row+forward*2, col+2) == opp_team: #enemy ally will be under attack
+		if check_space_wrapper(row+forward*2, col) == opp_team or check_space_wrapper(row+forward*2, col+2) == opp_team: # ally will be under attack
 			return True
-	elif check_space_wrapper(row, col-1) == team: #ally to the left
+	elif check_space_wrapper(row, col-1) == team or check_space_wrapper(row+forward, col-1) == team: #ally to the left
 		dlog("ally to the left")	
-		if check_space_wrapper(row+forward*2, col) == opp_team or check_space_wrapper(row+forward*2, col-2) == opp_team: #enemy ally will be under attack
+		if check_space_wrapper(row+forward*2, col) == opp_team or check_space_wrapper(row+forward*2, col-2) == opp_team: # ally will be under attack
 			return True
 	return False
 
