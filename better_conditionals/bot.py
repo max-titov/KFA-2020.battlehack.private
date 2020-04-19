@@ -18,7 +18,9 @@ row,col = 0,0
 whiteHalfway = 7
 blackHalfway = 8
 
-surroundingsMap = [[None, None, None],[None, None, None],[None, None, None]]
+scanRows = 2
+scanCols = 4
+surroundingsMap = [[None, None, None, None, None],[None, None, None, None, None]]
 
 #OVERLORD
 
@@ -38,7 +40,7 @@ enemyOneTileAwayWeight = 1000
 enemyTwoTilesAwayWeight = 700
 enemyOneAdjacentTileAwayWeight = -500
 
-DEBUG = 0
+DEBUG = 1
 def dlog(str):
 	if DEBUG > 0:
 		log(str)
@@ -137,22 +139,39 @@ def close_to_enemy_side():
 	distance = abs(row-backRow)
 	return distance >= board_size-3
 
+#Scan around the pawn to locate hostile and friendly pieces
 def map_surroundings():
-	global row, col
+	global row, col, scanRows, scanCols, surroundingsMap
 	rowAddition = 0
 	if team == Team.BLACK:
-		rowAddition = -1
+		colorMultiplier = -1
 	else:
-		rowAddition = 1
+		colorMultiplier = 1
+	tempRow = 0
+	while tempRow < scanRows:
+		colTemp = -2
+		for tempCol in range(scanCols):
+			space_check = check_space_wrapper(row - (tempRow + 1), col + colTemp)
+			if space_check != False:
+				surroundingsMap[tempRow][tempCol] = space_check
+			else:
+				surroundingsMap[tempRow][tempCol] = None
+			#dlog('Space_check: ' + str(space_check))
+			#dlog('Coords: ('+str(row-(tempRow+1))+', '+str(col + colTemp)+')')
+			colTemp += 1
+		tempRow += 1
 
 
+#Check to see if waiting to strike is the optimal move
 def wait_for_kill():
-	global row,col
+	global row, col, surroundingsMap
 
 def pawn_turn():
 	global row,col
 	row, col = get_location()
-
+	map_surroundings()
+	dlog(str(surroundingsMap))
+	dlog(str([row, col]))
 	if check_right(): # up and right
 		capture_right()
 
