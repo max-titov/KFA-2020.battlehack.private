@@ -48,9 +48,6 @@ def check_space_wrapper(r, c):
 		return None
 
 def turn():
-	f = open("test.txt","r")
-	contents = f.read()
-	dlog(contents)
 
 	if robottype is None:
 		init()
@@ -154,12 +151,10 @@ def pawn_turn():
 		else:
 			first_layer.append(0)
 
-
-	test_weights = [[random.randint(0,10) for x in range(75)] for y in range(20)]
-	test_bias = [random.randint(0,10) for x in range(20)]
 	second_layer = []
-
 	second_layer_len = 20
+	test_weights = [[random.randint(0,10) for x in range(len(first_layer))] for y in range(second_layer_len)]
+	test_bias = [random.randint(0,10) for x in range(second_layer_len)]
 
 	for i in range(second_layer_len):
 		value = test_bias[i]
@@ -169,17 +164,17 @@ def pawn_turn():
 	dlog('Second layer values: ' + str(second_layer))
 
 	#third layer
-	second_weights = [[random.randint(0,10) for x in range(20)] for y in range(2)]
-	second_bias = [random.randint(0,10) for x in range(2)]
 	output_layer = []
 	output_layer_len = 2
+	second_weights = [[random.randint(0,10) for x in range(second_layer_len)] for y in range(output_layer_len)]
+	second_bias = [random.randint(0,10) for x in range(output_layer_len)]
 	for i in range(output_layer_len):
 		tempValue = second_bias[i]
 		for j in range(second_layer_len):
 			tempValue += second_layer[j] * second_weights[i][j]
-		output_layer.append(value)
+		output_layer.append(tempValue)
 	dlog('Output layer values: ' + str(output_layer))
-
+	
 	#if check_right(): # up and right
 		#capture_right()
 
