@@ -14,36 +14,60 @@ input_count = 75
 hidden_count = 20
 output_count = 2
 
-pawn_bias_L1 = np.zeroes([generation_size, hidden_count, input_count])
-pawn_weights_L1 = np.zeroes([generation_size, hidden_count, input_count])
-pawn_bias_L2 = np.zeroes([generation_size, output_count, hidden_count])
-pawn_weights_L2 = np.zeroes([generation_size, output_count, hidden_count])
+pawn_bias_L1 = np.zeros([generation_size, hidden_count, input_count])
+pawn_weights_L1 = np.zeros([generation_size, hidden_count, input_count])
+pawn_bias_L2 = np.zeros([generation_size, output_count, hidden_count])
+pawn_weights_L2 = np.zeros([generation_size, output_count, hidden_count])
 
+overlord_bias_L1 = np.zeros([generation_size, hidden_count, input_count])
+overlord_weights_L1 = np.zeros([generation_size, hidden_count, input_count])
+overlord_bias_L2 = np.zeros([generation_size, output_count, hidden_count])
+overlord_weights_L2 = np.zeros([generation_size, output_count, hidden_count])
+
+
+def turn(game):
+    if game.running:
+        game.round += 1
+
+        if game.round > game.max_rounds:
+            game.check_over()
+
+        if game.debug:
+            game.log_info(f'Turn {game.round}')
+            game.log_info(f'Queue: {game.queue}')
+            game.log_info(f'Lords: {game.lords}')
+
+        for i in range(game.robot_count):
+            if i in game.queue:
+                robot = game.queue[i]
+                robot.turn()
+
+                if not robot.runner.initialized:
+                    game.delete_robot(i)
+                game.check_over()
+
+        if game.running:
+            for robot in game.lords:
+                robot.turn()
+
+            game.lords.reverse()  # the HQ's will alternate spawn order
+            game.board_states.append([row[:] for row in game.board])
+    else:
+        raise GameError('game is over')
 
 def train(code_container1,code_container2,args):
-    
-    white_wins = 0
-    black_wins = 0
-    for game_num in range(args.games):
-        random_seed = random.randint(0,1000000)
-        game = Game([code_container1, code_container2], board_size=args.board_size, max_rounds=args.max_rounds, 
-                seed=random_seed, debug=False)
-        while True:
-            if not game.running:
-                break
-            game.turn()
 
-        if str(game.winner) == "Team.WHITE":
-            white_wins+=1
-        else:
-            black_wins+=1
-        print(f'{game.winner} wins game {game_num}')
+    random_seed = random.randint(0,1000000)
+    game = Game([code_container1, code_container2], board_size=args.board_size, max_rounds=args.max_rounds, 
+            seed=random_seed, debug=False)
+    while True:
+        if not game.running:
+            break
+        turn(game)
 
-    white_win_rate = float(white_wins)/float(args.games)*100
-    print(f'White won {white_wins} games out of {args.games} which is a {white_win_rate}% win rate')
+    print(f'{game.winner} wins!')
 
-    black_win_rate = float(black_wins)/float(args.games)*100
-    print(f'Black won {black_wins} games out of {args.games} which is a {black_win_rate}% win rate')
+
 
 
 if __name__ == '__main__':
