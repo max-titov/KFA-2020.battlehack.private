@@ -24,6 +24,8 @@ overlord_weights_L1 = np.zeros([generation_size, hidden_count, input_count])
 overlord_bias_L2 = np.zeros([generation_size, output_count, hidden_count])
 overlord_weights_L2 = np.zeros([generation_size, output_count, hidden_count])
 
+#Point values for each subsequent row from the board end:
+point_values_list = [75, 25, 15, 10, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1]
 
 def turn(game):
     if game.running:
@@ -55,6 +57,18 @@ def turn(game):
     else:
         raise GameError('game is over')
 
+def calculate_score(game):
+    game_board = game.get_board()
+    whiteScore, blackScore = 0,0
+    for row in range(len(game_board)):
+        for col in range(len(game_board[0])):
+            if game_board[row][col] and game_board[row][col].team == Team.BLACK:
+                blackScore += point_values_list[row]
+            elif game_board[row][col] and game_board[row][col].team == Team.WHITE:
+                whiteScore += point_values_list[len(point_values_list)-row]
+    return 'White Score: '+str(whiteScore)+', Black Score: '+str(blackScore)
+
+
 def train(code_container1,code_container2,args):
 
     random_seed = random.randint(0,1000000)
@@ -65,6 +79,7 @@ def train(code_container1,code_container2,args):
             break
         turn(game)
 
+    print(calculate_score(game))
     print(f'{game.winner} wins!')
 
 
