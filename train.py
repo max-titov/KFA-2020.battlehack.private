@@ -35,41 +35,6 @@ fitnesses = np.zeros([population_size])
 
 matchups_per_bot = 2
 
-def check_over(self):
-    winner = False
-
-    white, black = 0, 0
-    for col in range(self.board_size):
-        if self.board[0][col] and self.board[0][col].team == Team.BLACK: black += 1
-        if self.board[self.board_size - 1][col] and self.board[self.board_size - 1][col].team == Team.WHITE: white += 1
-
-    if black >= (self.board_size + 1) // 2:
-        winner = True
-
-    if white >= (self.board_size + 1) // 2:
-        winner = True
-
-    if self.round > self.max_rounds:
-        winner = True
-
-    if winner:
-        if white == black:
-            tie = True
-            for r in range(1, self.board_size):
-                if tie:
-                    w, b = 0, 0
-                    for c in range(self.board_size):
-                        if self.board[r][c] and self.board[r][c].team == Team.BLACK: b += 1
-                        if self.board[self.board_size - r - 1][c] and self.board[self.board_size - r - 1][c].team == Team.WHITE: w += 1
-                    if w == b: continue
-                    self.winner = Team.WHITE if w > b else Team.BLACK
-                    tie = False
-            if tie:
-                self.winner = random.choice([Team.WHITE, Team.BLACK])
-        else:
-            self.winner = Team.WHITE if white > black else Team.BLACK
-        self.running = False
-
 def turn(game): #shameless stolen off of the engine ;)
     if game.running:
         game.round += 1
@@ -136,7 +101,7 @@ def train(code_container1,code_container2,args):
 
     random_seed = random.randint(0,1000000)
     game = Game([code_container1, code_container2], board_size=args.board_size, max_rounds=args.max_rounds, 
-            seed=random_seed, debug=True)
+            seed=random_seed, debug=False)
     while True:
         if not game.running:
             break
