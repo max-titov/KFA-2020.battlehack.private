@@ -133,12 +133,16 @@ def calculate_score(game):
     #return game.board
 
 def cut_population(game):
+    global example_bots_list
     example_bots_list.sort(key=lambda x: x[1])
-    new_generation = []
-
+    new_generation = [[]]
+    #Change example_bots_list to population_size
+    for i in range(int(len(example_bots_list)/3)):
+        new_generation.append(example_bots_list[len(example_bots_list) - i - 1])
+    example_bots_list = new_generation
 
 def train(code_container1,code_container2,args):
-
+    global example_bots_list
     random_seed = random.randint(0,1000000)
     game = Game([code_container1, code_container2], board_size=args.board_size, max_rounds=args.max_rounds, 
             seed=random_seed, debug=False)
@@ -147,7 +151,7 @@ def train(code_container1,code_container2,args):
             break
         turn(game)
 
-
+    print(example_bots_list)
     cut_population(game)
     print(example_bots_list)
 
