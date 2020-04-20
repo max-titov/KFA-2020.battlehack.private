@@ -35,12 +35,47 @@ fitnesses = np.zeros([population_size])
 
 matchups_per_bot = 2
 
+def check_over(game):
+    winner = False
+
+    white, black = 0, 0
+    for col in range(game.board_size):
+        if game.board[0][col] and game.board[0][col].team == Team.BLACK: black += 1
+        if game.board[game.board_size - 1][col] and game.board[game.board_size - 1][col].team == Team.WHITE: white += 1
+
+    if black >= (game.board_size + 1) // 2:
+        winner = True
+
+    if white >= (game.board_size + 1) // 2:
+        winner = True
+
+    if game.round > game.max_rounds:
+        winner = True
+
+    if winner:
+        if white == black:
+            tie = True
+            for r in range(1, game.board_size):
+                if tie:
+                    w, b = 0, 0
+                    for c in range(game.board_size):
+                        if game.board[r][c] and game.board[r][c].team == Team.BLACK: b += 1
+                        if game.board[game.board_size - r - 1][c] and game.board[game.board_size - r - 1][c].team == Team.WHITE: w += 1
+                    if w == b: continue
+                    game.winner = Team.WHITE if w > b else Team.BLACK
+                    tie = False
+            if tie:
+                game.winner = random.choice([Team.WHITE, Team.BLACK])
+        else:
+            game.winner = Team.WHITE if white > black else Team.BLACK
+        game.running = False
+
 def turn(game): #shameless stolen off of the engine ;)
     if game.running:
         game.round += 1
 
         if game.round > game.max_rounds:
-            game.check_over()
+            game.check_over(game)
 
         if game.debug:
             game.log_info(f'Turn {game.round}')
@@ -54,7 +89,7 @@ def turn(game): #shameless stolen off of the engine ;)
 
                 if not robot.runner.initialized:
                     game.delete_robot(i)
-                game.check_over()
+                game.check_over(game)
 
         if game.running:
             for robot in game.lords:
