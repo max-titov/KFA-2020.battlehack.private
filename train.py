@@ -40,8 +40,8 @@ def check_over(game):
 
     white, black = 0, 0
     for col in range(game.board_size):
-        if game.board[0][col] and game.board[0][col].team == Team.BLACK: black += 1
-        if game.board[game.board_size - 1][col] and game.board[game.board_size - 1][col].team == Team.WHITE: white += 1
+        if game.board[0][col] and str(game.board[0][col].team) == "Team.BLACK": black += 1
+        if game.board[game.board_size - 1][col] and str(game.board[game.board_size - 1][col].team) == "Team.WHITE": white += 1
 
     if black >= (game.board_size + 1) // 2:
         winner = True
@@ -59,15 +59,15 @@ def check_over(game):
                 if tie:
                     w, b = 0, 0
                     for c in range(game.board_size):
-                        if game.board[r][c] and game.board[r][c].team == Team.BLACK: b += 1
-                        if game.board[game.board_size - r - 1][c] and game.board[game.board_size - r - 1][c].team == Team.WHITE: w += 1
+                        if game.board[r][c] and str(game.board[r][c].team) == "Team.BLACK": b += 1
+                        if game.board[game.board_size - r - 1][c] and str(game.board[game.board_size - r - 1][c].team) == "Team.WHITE": w += 1
                     if w == b: continue
-                    game.winner = Team.WHITE if w > b else Team.BLACK
+                    game.winner = "Team.WHITE" if w > b else "Team.BLACK"
                     tie = False
             if tie:
-                game.winner = random.choice([Team.WHITE, Team.BLACK])
+                game.winner = str(random.choice([Team.WHITE, Team.BLACK]))
         else:
-            game.winner = Team.WHITE if white > black else Team.BLACK
+            game.winner = "Team.WHITE" if white > black else "Team.BLACK"
         game.running = False
 
 def turn(game): #shameless stolen off of the engine ;)
@@ -75,7 +75,7 @@ def turn(game): #shameless stolen off of the engine ;)
         game.round += 1
 
         if game.round > game.max_rounds:
-            game.check_over(game)
+            check_over(game)
 
         if game.debug:
             game.log_info(f'Turn {game.round}')
@@ -89,7 +89,7 @@ def turn(game): #shameless stolen off of the engine ;)
 
                 if not robot.runner.initialized:
                     game.delete_robot(i)
-                game.check_over(game)
+                check_over(game)
 
         if game.running:
             for robot in game.lords:
@@ -123,10 +123,10 @@ def calculate_score(game):
     whiteScore, blackScore = 0,0
     for row in range(len(game_board)):
         for col in range(len(game_board[0])):
-            if str(game_board[row][col]) == 'Team.BLACK':
+            if game_board[row][col] and str(game_board[row][col].team) == 'Team.BLACK':
                 blackScore += point_values_list[row]
-            elif str(game_board[row][col]) == 'Team.WHITE':
-                whiteScore += point_values_list[len(point_values_list)-row]
+            elif game_board[row][col] and str(game_board[row][col].team) == 'Team.WHITE':
+                whiteScore += point_values_list[len(point_values_list)-1-row]
     return 'White Score: '+str(whiteScore)+', Black Score: '+str(blackScore)
     #return game.board
 
