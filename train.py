@@ -70,9 +70,6 @@ def check_over(self):
             self.winner = Team.WHITE if white > black else Team.BLACK
         self.running = False
 
-    if not self.running:
-        self.board_states.append([row[:] for row in self.board])
-        self.process_over()
 def turn(game): #shameless stolen off of the engine ;)
     if game.running:
         game.round += 1
