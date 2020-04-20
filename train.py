@@ -55,6 +55,8 @@ def turn(game):
     else:
         raise GameError('game is over')
 
+def 
+
 def train(code_container1,code_container2,args):
 
     random_seed = random.randint(0,1000000)
@@ -66,7 +68,6 @@ def train(code_container1,code_container2,args):
         turn(game)
 
     print(f'{game.winner} wins!')
-
 
 
 
