@@ -22,10 +22,15 @@ pawn_weights_L2 = np.zeros([population_size, output_count, hidden_count]).tolist
 weight_zones = 3 # on border, one away from border, all other cases
 board_size = 16
 
+<<<<<<< HEAD
 overlord_weights_same_allied = np.zeros([population_size, weight_zones, board_size]).tolist()
 overlord_weights_adjacent_allied = np.zeros([population_size, weight_zones, board_size]).tolist()
 overlord_weights_same_enemy = np.zeros([population_size, weight_zones, board_size]).tolist()
 overlord_weights_adjacent_enemy = np.zeros([population_size, weight_zones, board_size]).tolist()
+=======
+#Point values for each subsequent row from the board end:
+point_values_list = [75, 25, 15, 10, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1]
+>>>>>>> f7dc5ae90af0af743517a9fd0e3edfb424ad9520
 
 fitnesses = np.zeros([population_size])
 
@@ -61,6 +66,7 @@ def turn(game): #shameless stolen off of the engine ;)
     else:
         raise GameError('game is over')
 
+<<<<<<< HEAD
 def test_generation(args): # runs matches between the bots to determine fitness values
     for m in range(matchups_per_bot):
         queue = random.shuffle(list(range(population_size))) #queue to determine matchups
@@ -76,20 +82,39 @@ def test_generation(args): # runs matches between the bots to determine fitness 
                     break
                 turn(game)
 
+=======
+def calculate_score(game):
+    global point_values_list
+    game_board = game.board
+    whiteScore, blackScore = 0,0
+    for row in range(len(game_board)):
+        for col in range(len(game_board[0])):
+            if game_board[row][col] and game_board[row][col].team == Team.BLACK:
+                blackScore += point_values_list[row]
+            elif game_board[row][col] and game_board[row][col].team == Team.WHITE:
+                whiteScore += point_values_list[len(point_values_list)-row]
+    #return 'White Score: '+str(whiteScore)+', Black Score: '+str(blackScore)
+    return game.board
+>>>>>>> f7dc5ae90af0af743517a9fd0e3edfb424ad9520
 
 
 def train(code_container1,code_container2,args):
 
     random_seed = random.randint(0,1000000)
     game = Game([code_container1, code_container2], board_size=args.board_size, max_rounds=args.max_rounds, 
-            seed=random_seed, debug=False)
+            seed=random_seed, debug=True)
     while True:
         if not game.running:
             break
         turn(game)
 
+<<<<<<< HEAD
     print(game.board)
+=======
+    print(calculate_score(game))
+>>>>>>> f7dc5ae90af0af743517a9fd0e3edfb424ad9520
     print(f'{game.winner} wins!')
+
 
 
 
