@@ -30,6 +30,8 @@ overlord_weights_adjacent_enemy = np.zeros([population_size, weight_zones, board
 #Point values for each subsequent row from the board end:
 point_values_list = [75, 25, 15, 10, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1]
 
+#Example bots list
+example_bots_list = [['bot id', 84], ['bot id2', 56], ['bot id3', 10]]
 
 fitnesses = np.zeros([population_size])
 
@@ -127,9 +129,12 @@ def calculate_score(game):
                 blackScore += point_values_list[row]
             elif game_board[row][col] and str(game_board[row][col].team) == 'Team.WHITE':
                 whiteScore += point_values_list[len(point_values_list)-1-row]
-    return 'White Score: '+str(whiteScore)+', Black Score: '+str(blackScore)
+    return 'White Score: ' + str(whiteScore) + ', Black Score: ' + str(blackScore)
     #return game.board
 
+def cut_population(game):
+    example_bots_list.sort(key=lambda x: x[1])
+    new_generation = []
 
 
 def train(code_container1,code_container2,args):
@@ -143,7 +148,8 @@ def train(code_container1,code_container2,args):
         turn(game)
 
 
-    print(game.board)
+    cut_population(game)
+    print(example_bots_list)
 
     print(calculate_score(game))
 
