@@ -123,9 +123,9 @@ def calculate_score(game):
     whiteScore, blackScore = 0,0
     for row in range(len(game_board)):
         for col in range(len(game_board[0])):
-            if game_board[row][col] and game_board[row][col].team == Team.BLACK:
+            if str(game_board[row][col]) == 'Team.BLACK':
                 blackScore += point_values_list[row]
-            elif game_board[row][col] and game_board[row][col].team == Team.WHITE:
+            elif str(game_board[row][col]) == 'Team.WHITE':
                 whiteScore += point_values_list[len(point_values_list)-row]
     return 'White Score: '+str(whiteScore)+', Black Score: '+str(blackScore)
     #return game.board
@@ -143,7 +143,7 @@ def train(code_container1,code_container2,args):
         turn(game)
 
 
-    #print(game.board)
+    print(game.board)
 
     print(calculate_score(game))
 
