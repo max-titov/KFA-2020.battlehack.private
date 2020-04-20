@@ -8,24 +8,30 @@ import numpy as np
 
 from battlehack20 import CodeContainer, Game, BasicViewer, GameConstants
 
-generation_size = 120
+population_size = 120
 
 input_count = 75
 hidden_count = 20
 output_count = 2
 
-pawn_bias_L1 = np.zeros([generation_size, hidden_count, input_count])
-pawn_weights_L1 = np.zeros([generation_size, hidden_count, input_count])
-pawn_bias_L2 = np.zeros([generation_size, output_count, hidden_count])
-pawn_weights_L2 = np.zeros([generation_size, output_count, hidden_count])
+pawn_bias_L1 = np.zeros([population_size, hidden_count, input_count]).tolist()
+pawn_weights_L1 = np.zeros([population_size, hidden_count, input_count]).tolist()
+pawn_bias_L2 = np.zeros([population_size, output_count, hidden_count]).tolist()
+pawn_weights_L2 = np.zeros([population_size, output_count, hidden_count]).tolist()
 
-overlord_bias_L1 = np.zeros([generation_size, hidden_count, input_count])
-overlord_weights_L1 = np.zeros([generation_size, hidden_count, input_count])
-overlord_bias_L2 = np.zeros([generation_size, output_count, hidden_count])
-overlord_weights_L2 = np.zeros([generation_size, output_count, hidden_count])
+weight_zones = 3 # on border, one away from border, all other cases
+board_size = 16
 
+overlord_weights_same_allied = np.zeros([population_size, weight_zones, board_size]).tolist()
+overlord_weights_adjacent_allied = np.zeros([population_size, weight_zones, board_size]).tolist()
+overlord_weights_same_enemy = np.zeros([population_size, weight_zones, board_size]).tolist()
+overlord_weights_adjacent_enemy = np.zeros([population_size, weight_zones, board_size]).tolist()
 
-def turn(game):
+fitnesses = np.zeros([population_size])
+
+matchups_per_bot = 2
+
+def turn(game): #shameless stolen off of the engine ;)
     if game.running:
         game.round += 1
 
@@ -55,7 +61,22 @@ def turn(game):
     else:
         raise GameError('game is over')
 
-def 
+def test_generation(args): # runs matches between the bots to determine fitness values
+    for m in range(matchups_per_bot):
+        queue = random.shuffle(list(range(population_size))) #queue to determine matchups
+
+        i = 0
+        while i < len(queue):
+            random_seed = random.randint(0,1000000)
+            #TODO make the game NOT use the code_containers and use 
+            game = Game([code_container1, code_container2], board_size=args.board_size, max_rounds=args.max_rounds, 
+                    seed=random_seed, debug=False)
+            while True:
+                if not game.running:
+                    break
+                turn(game)
+
+
 
 def train(code_container1,code_container2,args):
 
@@ -67,6 +88,7 @@ def train(code_container1,code_container2,args):
             break
         turn(game)
 
+    print(game.board)
     print(f'{game.winner} wins!')
 
 
