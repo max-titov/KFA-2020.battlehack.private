@@ -17,6 +17,26 @@ sensor_radius = 2
 
 #OVERLORD
 
+sameRowAlliedWeights = [
+[-64,-63,-62,-61,-60,-59,-58,-57,-56,-55,-54,-53,-52,-51,-50,-49], #on border
+[-64,-63,-62,-61,-60,-59,-58,-57,-56,-55,-54,-53,-52,-51,-50,-49], #one away from boarder
+[-64,-63,-62,-61,-60,-59,-58,-57,-56,-55,-54,-53,-52,-51,-50,-49]] #all other possibilities
+
+sameRowEnemyWeights = [
+[1000,700,14,13,12,11,10,9,8,7,6,5,4,3,2,1],
+[1000,700,14,13,12,11,10,9,8,7,6,5,4,3,2,1],
+[1000,700,14,13,12,11,10,9,8,7,6,5,4,3,2,1]]
+
+adjacentRowAlliedWeights = [
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
+
+adjacentRowEnemyWeights = [
+[-500,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1],
+[-500,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1],
+[-500,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1]]
+
 sameRowAlliedPawnWeight = -64
 adjacentRowAlliedPawnWeight = 0
 
@@ -195,6 +215,11 @@ def pawn_turn():
 ########################## OVERLORD ##########################
 ##############################################################
 
+def dist_to_side(column):
+	dist1 = column
+	dist2 = board_size-1-column
+	return dist1 if dist1 < dist2 else dist2
+
 def overlord_init():
 	global backRow
 	if team == Team.WHITE:
@@ -202,8 +227,49 @@ def overlord_init():
 	else:
 		backRow = board_size - 1
 
+def spawn_weights_pro_plus_max_xyz(board):
+	weights = []
+	for tempCol in range(board_size):
+		weights.append(0)
 
-def spawn_weights(board): # TODO: add adjecent col to weight value
+		weight_index = dist_to_side(tempCol) # different weights depending on how far away from the wall
+		if weight_index > 2:
+			weight_index = 2 #limit is 2 away
+
+		#check same col
+		for tempRow in range(board_size):
+			pawn = board[tempRow][tempCol]
+			if pawn != None: # there is a pawn
+				distance = abs(tempRow-backRow) # distance to pawn from your back row
+				if pawn == team: # your pawn
+					weights[tempCol] = weights[tempCol] + sameRowAlliedWeights[weight_index][distance]
+				else: # enemy pawn
+					weights[tempCol] = weights[tempCol] + sameRowEnemyWeights[weight_index][distance]
+
+		#check left adjacent col
+		if tempCol > 0:
+			for tempRow in range(board_size):
+				pawn = board[tempRow][tempCol-1]
+				if pawn != None: # there is a pawn
+					distance = abs(tempRow-backRow) # distance to pawn from your back row
+					if pawn == team: # your pawn
+						weights[tempCol] = weights[tempCol] + adjacentRowAlliedWeights[weight_index][distance]
+					else: # enemy pawn
+						weights[tempCol] = weights[tempCol] + adjacentRowEnemyWeights[weight_index][distance]
+
+		#check right adjacent col
+		if tempCol < board_size-1:
+			for tempRow in range(board_size):
+				pawn = board[tempRow][tempCol+1]
+				if pawn != None: # there is a pawn
+					distance = abs(tempRow-backRow) # distance to pawn from your back row
+					if pawn == team: # your pawn
+						weights[tempCol] = weights[tempCol] + adjacentRowAlliedWeights[weight_index][distance]
+					else: # enemy pawn
+						weights[tempCol] = weights[tempCol] + adjacentRowEnemyWeights[weight_index][distance]
+	return weights
+
+def spawn_weights(board):
 	weights = []
 	for tempCol in range(board_size):
 		weights.append(0)
@@ -265,7 +331,7 @@ def maxIndex(list):
 
 def overlord_turn():
 	board = get_board()
-	weights = spawn_weights(board)
+	weights = spawn_weights_pro_plus_max_xyz(board)
 	
 	debug = ''
 	for i in range(board_size):

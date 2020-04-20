@@ -57,6 +57,7 @@ def turn(game):
     else:
         raise GameError('game is over')
 
+<<<<<<< HEAD
 def calculate_score(game):
     game_board = game.get_board()
     whiteScore, blackScore = 0,0
@@ -68,6 +69,9 @@ def calculate_score(game):
                 whiteScore += point_values_list[len(point_values_list)-row]
     return 'White Score: '+str(whiteScore)+', Black Score: '+str(blackScore)
 
+=======
+def 
+>>>>>>> 50dd1b1700843f90d1d5b16c8a49a45df0295598
 
 def train(code_container1,code_container2,args):
 
@@ -81,7 +85,6 @@ def train(code_container1,code_container2,args):
 
     print(calculate_score(game))
     print(f'{game.winner} wins!')
-
 
 
 
