@@ -5,16 +5,24 @@ import sys
 import threading
 import random
 import numpy as np
+import os
 
 from battlehack20 import CodeContainer, Game, BasicViewer, GameConstants
 from battlehack20.engine.game.team import Team
 from battlehack20.engine.game.robottype import RobotType
 
+weights_dir = "saved_weights/"
+
 population_size = 120
+
+generation = 0
 
 input_count = 76
 hidden_count = 20
 output_count = 2
+
+mutation_chance = 0.05
+replacement_chance = 0.99
 
 pawn_bias_L1 = np.zeros([population_size, hidden_count])
 pawn_weights_L1 = np.zeros([population_size, input_count, hidden_count])
@@ -36,7 +44,7 @@ penalty_values_list = [50, 15, 10, 5, 3, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
 #Example bots list
 fitnesses = [[x, 0] for x in range(population_size)]
 
-matchups_per_bot = 2
+matchups_per_bot = 1
 
 cut_percentage = 3
 
@@ -380,12 +388,51 @@ def dir_name_generator(num):
         newDir=newDir+"0"
     return newDir+str(num)
 
-
-
-def save_weights(best_bot):
+def save_best_bot(best_bot):
     newDir = dir_name_generator(generation)
     
     os.mkdir(weights_dir+newDir)
+
+    #best bot weights
+
+    f=open(weights_dir+newDir+"/best_bot.txt", "w")
+
+    #pawn weights
+    for j in range(len(pawn_bias_L1[0])):
+        f.write("%f\n"%pawn_bias_L1[best_bot][j])
+
+    for j in range(len(pawn_weights_L1[0])):
+        for k in range(len(pawn_weights_L1[0][0])):
+            f.write("%f\n"%pawn_weights_L1[best_bot][j][k])
+
+    for j in range(len(pawn_bias_L2[0])):
+        f.write("%f\n"%pawn_bias_L2[best_bot][j])
+
+    for j in range(len(pawn_weights_L2[0])):
+        for k in range(len(pawn_weights_L2[0][0])):
+            f.write("%f\n"%pawn_weights_L2[best_bot][j][k])
+
+    #overlord weights
+    for j in range(len(overlord_weights_same_allied[0])):
+        for k in range(len(overlord_weights_same_allied[0][0])):
+            f.write("%f\n"%overlord_weights_same_allied[best_bot][j][k])
+
+    for j in range(len(overlord_weights_adjacent_allied[0])):
+        for k in range(len(overlord_weights_adjacent_allied[0][0])):
+            f.write("%f\n"%overlord_weights_adjacent_allied[best_bot][j][k])
+
+    for j in range(len(overlord_weights_same_enemy[0])):
+        for k in range(len(overlord_weights_same_enemy[0][0])):
+            f.write("%f\n"%overlord_weights_same_enemy[best_bot][j][k])
+
+    for j in range(len(overlord_weights_adjacent_enemy[0])):
+        for k in range(len(overlord_weights_adjacent_enemy[0][0])):
+            f.write("%f\n"%overlord_weights_adjacent_enemy[best_bot][j][k])
+
+    f.close()
+
+def save_weights():
+    newDir = dir_name_generator(generation)
     
     # all weights
     f=open(weights_dir+newDir+"/all_weights.txt", "w")
@@ -432,41 +479,6 @@ def save_weights(best_bot):
 
     f.close() 
 
-    #best bot weights
-
-    f=open(weights_dir+newDir+"/best_bot.txt", "w")
-
-    #pawn weights
-    for j in range(len(pawn_bias_L1[0])):
-        f.write("%f\n"%pawn_bias_L1[best_bot][j])
-
-    for j in range(len(pawn_weights_L1[0])):
-        for k in range(len(pawn_weights_L1[0][0])):
-            f.write("%f\n"%pawn_weights_L1[best_bot][j][k])
-
-    for j in range(len(pawn_bias_L2[0])):
-        f.write("%f\n"%pawn_bias_L2[best_bot][j])
-
-    for j in range(len(pawn_weights_L2[0])):
-        for k in range(len(pawn_weights_L2[0][0])):
-            f.write("%f\n"%pawn_weights_L2[best_bot][j][k])
-
-    #overlord weights
-    for j in range(len(overlord_weights_same_allied[0])):
-        for k in range(len(overlord_weights_same_allied[0][0])):
-            f.write("%f\n"%overlord_weights_same_allied[best_bot][j][k])
-
-    for j in range(len(overlord_weights_adjacent_allied[0])):
-        for k in range(len(overlord_weights_adjacent_allied[0][0])):
-            f.write("%f\n"%overlord_weights_adjacent_allied[best_bot][j][k])
-
-    for j in range(len(overlord_weights_same_enemy[0])):
-        for k in range(len(overlord_weights_same_enemy[0][0])):
-            f.write("%f\n"%overlord_weights_same_enemy[best_bot][j][k])
-
-    for j in range(len(overlord_weights_adjacent_enemy[0])):
-        for k in range(len(overlord_weights_adjacent_enemy[0][0])):
-            f.write("%f\n"%overlord_weights_adjacent_enemy[best_bot][j][k])
 
                     
 # GENETIC ALGORITHM #
@@ -480,7 +492,7 @@ def test_generation(code_container1, args): # runs matches between the bots to d
         while i < len(queue):
             bot1 = queue[i]
             bot2 = queue[i+1]
-            print("playing "+str(bot1)+" against "+ str(bot2))
+            #print("playing "+str(bot1)+" against "+ str(bot2))
             random_seed = random.randint(0,1000000)
             #TODO make the game NOT use the code_containers and use 
             game = Game([code_container1, code_container1], board_size=args.board_size, max_rounds=args.max_rounds, 
@@ -498,7 +510,6 @@ def test_generation(code_container1, args): # runs matches between the bots to d
             fitnesses[bot2][1] = fitnesses[bot2][1] + blackScore
 
             i+=2
-    print(fitnesses)
 
 
 # GENETIC ALGORITHM #
@@ -525,6 +536,11 @@ def calculate_score(game): #Calculate the fitness of each individual bot
 def cut_population():
     global fitnesses, cut_percentage
     fitnesses.sort(key=lambda x: x[1])
+
+    #TEMPORARY SPOT!!!!!!!!
+    save_best_bot(fitnesses[population_size-1][0])
+
+
     new_generation = []
     #Change example_bots_list to population_size
     for i in range(int(len(fitnesses)/cut_percentage)):
@@ -615,91 +631,110 @@ def new_generation():
     for i in range(population_size):
         for j in range(len(pawn_bias_L1[0])):
             randFloat = random.uniform(0,1)
-            if randFloat < 0.05:
+            if randFloat < mutation_chance:
                 new_layer1_bias[i][j] = new_layer1_bias[i][j] + random.uniform(-0.25, 0.25)*new_layer1_bias[i][j]
-            elif randFloat > 0.99: 
+            elif randFloat > replacement_chance: 
                 new_layer1_bias[i][j] = random.uniform(-10,10)
         #print('success 1')
         for j in range(len(pawn_weights_L1[0])):
             for z in range(len(pawn_weights_L1[0][0])):
                 randFloat = random.uniform(0,1)
-                if randFloat < 0.05: 
+                if randFloat < mutation_chance: 
                     new_layer1_weights[i][j][z] = new_layer1_weights[i][j][z] + random.uniform(-0.25, 0.25)*new_layer1_weights[i][j][z]
-                elif randFloat > 0.99:
+                elif randFloat > replacement_chance:
                     new_layer1_weights[i][j][z] = random.uniform(-10,10)
         #print('success 2')
         for j in range(len(pawn_bias_L2[0])):
             randFloat = random.uniform(0,1)
-            if randFloat < 0.05: 
+            if randFloat < mutation_chance: 
                 new_layer2_bias[i][j] = new_layer2_bias[i][j] + random.uniform(-0.25, 0.25)*new_layer2_bias[i][j]
-            elif randFloat > 0.99:
+            elif randFloat > replacement_chance:
                 new_layer2_bias[i][j] = random.uniform(-10,10)
         #print('success 3')
         for j in range(len(pawn_weights_L2[0])):
             for z in range(len(pawn_weights_L2[0][0])):
                 randFloat = random.uniform(0,1)
-                if randFloat < 0.05: 
+                if randFloat < mutation_chance: 
                     new_layer2_weights[i][j][z] = new_layer2_weights[i][j][z] + random.uniform(-0.25, 0.25)*new_layer2_weights[i][j][z]
-                elif randFloat > 0.99:
+                elif randFloat > replacement_chance:
                     new_layer2_weights[i][j][z] = random.uniform(-10,10)
         #print('success 4')
         for j in range(len(overlord_weights_same_allied[0])):
             for z in range(len(overlord_weights_same_allied[0][0])):
                 randFloat = random.uniform(0,1)
-                if randFloat < 0.05: 
+                if randFloat < mutation_chance: 
                     new_same_allied[i][j][z] = new_same_allied[i][j][z] + random.uniform(-0.25, 0.25)*new_same_allied[i][j][z]
-                elif randFloat > 0.99:
+                elif randFloat > replacement_chance:
                     new_same_allied[i] = random.uniform(-10,10)
         #print('success 5')
         for j in range(len(overlord_weights_adjacent_allied[0])):
             for z in range(len(overlord_weights_adjacent_allied[0][0])):
                 randFloat = random.uniform(0,1)
-                if randFloat < 0.05: 
+                if randFloat < mutation_chance: 
                     new_adjacent_allied[i][j][z] = new_adjacent_allied[i][j][z] + random.uniform(-0.25, 0.25)*new_adjacent_allied[i][j][z]
-                elif randFloat > 0.99:
+                elif randFloat > replacement_chance:
                     new_adjacent_allied[i] = random.uniform(-10,10)
         #print('success 6')
         for j in range(len(overlord_weights_same_enemy[0])):
             for z in range(len(overlord_weights_same_enemy[0][0])):
                 randFloat = random.uniform(0,1)
-                if randFloat < 0.05: 
+                if randFloat < mutation_chance: 
                     new_same_enemy[i][j][z] = new_same_enemy[i][j][z] + random.uniform(-0.25, 0.25)*new_same_enemy[i][j][z]
-                elif randFloat > 0.99:
+                elif randFloat > replacement_chance:
                     new_same_enemy[i] = random.uniform(-10,10)
         #print('success 7')
         for j in range(len(overlord_weights_adjacent_enemy[0])):
             for z in range(len(overlord_weights_adjacent_enemy[0][0])):
                 randFloat = random.uniform(0,1)
-                if randFloat < 0.05: 
+                if randFloat < mutation_chance: 
                     new_adjacent_enemy[i][j][z] = new_adjacent_enemy[i][j][z] + random.uniform(-0.25, 0.25)*new_adjacent_enemy[i][j][z]
-                elif randFloat > 0.99:
+                elif randFloat > replacement_chance:
                     new_adjacent_enemy[i] = random.uniform(-10,10)
         #print('success 8')
 
-    #reset fitnesses
-    fitnesses = [[x, 0] for x in range(population_size)]
     pawn_bias_L1, pawn_weights_L1, pawn_bias_L2, pawn_weights_L2, overlord_weights_same_allied, overlord_weights_adjacent_allied, overlord_weights_same_enemy, overlord_weights_adjacent_enemy = new_layer1_bias, new_layer1_weights, new_layer2_bias, new_layer2_weights, new_same_allied, new_adjacent_allied, new_same_enemy, new_adjacent_enemy
 
+def create_first_generation():
+    global pawn_bias_L1, pawn_weights_L1, pawn_bias_L2, pawn_weights_L2, overlord_weights_same_allied, overlord_weights_adjacent_allied, overlord_weights_same_enemy, overlord_weights_adjacent_enemy
+
+    for i in range(population_size):
+        s_l1_bias, s_l1_weight, s_l2_bias, s_l2_weight, s_same_a, s_adjacent_a, s_same_e, s_adjacent_e = generate_random_bot(10)
+    
+        pawn_bias_L1[i] = s_l1_bias
+        pawn_weights_L1[i] = s_l1_weight
+        pawn_bias_L2[i] = s_l2_bias
+        pawn_weights_L2[i] = s_l2_weight
+
+        overlord_weights_same_allied[i] = s_same_a
+        overlord_weights_adjacent_allied[i] = s_adjacent_a
+        overlord_weights_same_enemy[i] = s_same_e
+        overlord_weights_adjacent_enemy[i] = s_adjacent_e
+
+
+
 def train(code_container1,args):
-    #test_generation(code_container1, args)
-    #return;
+    global generation, fitnesses
 
-    # save_weights(1)
-    # #test_generation(code_container1, args)
-    # return;
 
-    global example_bots_list
-    random_seed = random.randint(0,1000000)
-    robot_count = 0
-    game = Game([code_container1, code_container1], board_size=args.board_size, max_rounds=args.max_rounds, 
-            seed=random_seed, debug=False)
+    create_first_generation()
     while True:
-        if not game.running:
-            break
-        turn(game,1,1)
+        test_generation(code_container1,args)
 
-    new_generation()
-    print(f'{game.winner} wins!')
+        new_generation()
+
+        save_weights()
+
+        fitnesses = [[x, 0] for x in range(population_size)]
+
+        print("Generation "+str(generation)+" complete")
+
+        generation+=1
+
+
+
+
+
+
 
 if __name__ == '__main__':
 
