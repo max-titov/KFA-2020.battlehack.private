@@ -16,10 +16,10 @@ input_count = 75
 hidden_count = 20
 output_count = 2
 
-pawn_bias_L1 = np.zeros([population_size, hidden_count, input_count]).tolist()
-pawn_weights_L1 = np.zeros([population_size, hidden_count, input_count]).tolist()
-pawn_bias_L2 = np.zeros([population_size, output_count, hidden_count]).tolist()
-pawn_weights_L2 = np.zeros([population_size, output_count, hidden_count]).tolist()
+pawn_bias_L1 = np.zeros([population_size, hidden_count]).tolist()
+pawn_weights_L1 = np.zeros([population_size, hidden_count]).tolist()
+pawn_bias_L2 = np.zeros([population_size, output_count]).tolist()
+pawn_weights_L2 = np.zeros([population_size, output_count]).tolist()
 
 weight_zones = 3 # on border, one away from border, all other cases
 board_size = 16
@@ -34,11 +34,15 @@ point_values_list = [75, 25, 15, 10, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1]
 penalty_values_list = [50, 15, 10, 5, 3, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
 
 #Example bots list
-example_bots_list = [['bot id', 84], ['bot id2', 56], ['bot id3', 10]]
-
-fitnesses = np.zeros([population_size])
+fitnesses = [[x, 0] for x in range(population_size)]
 
 matchups_per_bot = 2
+
+cut_percentage = 3
+
+dupe_number = 1
+
+random_number = 3
 
 # BOT CODE IS BELOW #
 
@@ -412,13 +416,13 @@ def calculate_score(game): #Calculate the fitness of each individual bot
     return 'White Score: ' + str(whiteScore - whitePenalty) + ', Black Score: ' + str(blackScore-blackPenalty)
     #return game.board
 
-#Cut population by 2/3
+#Cut population by 2/3 also change from example_bots_list to the real bots list
 def cut_population():
-    global example_bots_list
+    global example_bots_list, cut_percentage
     example_bots_list.sort(key=lambda x: x[1])
     new_generation = []
     #Change example_bots_list to population_size
-    for i in range(int(len(example_bots_list)/3)):
+    for i in range(int(len(example_bots_list)/cut_percentage)):
         new_generation.append(example_bots_list[len(example_bots_list) - i - 1])
     return new_generation
 
@@ -438,8 +442,84 @@ def generate_random_bot(one_std_overlord_change):
 
 #Create the new generation
 def new_generation():
+    global population_size, cut_percentage, dupe_number, random_number
     survivors = cut_population()
     
+    #Pawn stuff
+    new_layer1_bias = []
+    new_layer1_weights = []
+    new_layer2_bias = []
+    new_layer2_weights = []
+    #Overlord stuff
+    new_same_allied = []
+    new_adjacent_allied = []
+    new_same_enemy = []
+    new_adjacent_enemy = []
+
+    #reading in and duplicating survivors
+    for j in range(population_size/dupe_number):
+        for i in range(len(survivors)):
+            new_layer1_bias.append(pawn_bias_L1[(survivors[i])[0]])
+            new_layer1_weights.append(pawn_bias_L2[(survivors[i])[0]])
+            new_layer2_bias.append(pawn_bias_L2[(survivors[i])[0]])
+            new_layer2_weights.append(pawn_weights_L2[(survivors[i])[0]])
+            new_same_allied.append(overlord_weights_same_allied[(survivors[i])[0]])
+            new_adjacent_allied.append(overlord_weights_adjacent_allied[(survivors[i])[0]])
+            new_same_enemy.append(overlord_weights_same_enemy[(survivors[i])[0]])
+            new_adjacent_enemy.append(overlord_weights_adjacent_enemy[(survivors[i])[0]])
+
+    #creating and reading in randomly generated bots
+    for i in range(population_size/random_number):
+        s_l1_bias, s_l1_weight, s_l2_bias, s_l2_weight, s_same_a, s_adjacent_a, s_same_e, s_adjacent_e = generate_random_bot(15)
+        new_layer1_bias.append(s_l1_bias)
+        new_layer1_weights.append(s_l1_weight)
+        new_layer2_bias.append(s_l2_bias)
+        new_layer2_weights.append(s_l2_weight)
+        new_same_allied.append(s_same_a)
+        new_adjacent_allied.append(s_adjacent_a)
+        new_same_enemy.append(s_same_e)
+        new_adjacent_enemy.append(s_adjacent_e)
+
+    #5% chance of a mutation within each item field --> changes are between -25% and 25%
+    for i in range(len(population_size)):
+        randFloat = random.uniform(0,1)
+        if randFloat < 0.05: new_layer1_bias[i] += random.uniform(-0.25, 0.25)*new_layer1_bias[i]
+        randFloat = random.uniform(0,1)
+        if randFloat < 0.05: new_layer1_weights[i] += random.uniform(-0.25, 0.25)*new_layer1_weights[i]
+        randFloat = random.uniform(0,1)
+        if randFloat < 0.05: new_layer2_bias[i] += random.uniform(-0.25, 0.25)*new_layer2_bias[i]
+        randFloat = random.uniform(0,1)
+        if randFloat < 0.05: new_layer2_weights[i] += random.uniform(-0.25, 0.25)*new_layer2_weights[i]
+        randFloat = random.uniform(0,1)
+        if randFloat < 0.05: new_same_allied[i] += random.uniform(-0.25, 0.25)*new_same_allied[i]
+        randFloat = random.uniform(0,1)
+        if randFloat < 0.05: new_adjacent_allied[i] += random.uniform(-0.25, 0.25)*new_adjacent_allied[i]
+        randFloat = random.uniform(0,1)
+        if randFloat < 0.05: new_same_enemy[i] += random.uniform(-0.25, 0.25)*new_same_enemy[i]
+        randFloat = random.uniform(0,1)
+        if randFloat < 0.05: new_adjacent_enemy[i] += random.uniform(-0.25, 0.25)*new_adjacent_enemy[i]
+
+    #1% chance of generating a completely new item value
+    for i in range(len(population_size)):
+        randFloat = random.uniform(0,1)
+        if randFloat < 0.01: new_layer1_bias[i] = random.uniform(-10,10)
+        randFloat = random.uniform(0,1)
+        if randFloat < 0.01: new_layer1_weights[i] = random.uniform(-10,10)
+        randFloat = random.uniform(0,1)
+        if randFloat < 0.01: new_layer2_bias[i] = random.uniform(-10,10)
+        randFloat = random.uniform(0,1)
+        if randFloat < 0.01: new_layer2_weights[i] = random.uniform(-10,10)
+        randFloat = random.uniform(0,1)
+        if randFloat < 0.01: new_same_allied[i] = random.uniform(-10,10)
+        randFloat = random.uniform(0,1)
+        if randFloat < 0.01: new_adjacent_allied[i] = random.uniform(-10,10)
+        randFloat = random.uniform(0,1)
+        if randFloat < 0.01: new_same_enemy[i] = random.uniform(-10,10)
+        randFloat = random.uniform(0,1)
+        if randFloat < 0.01: new_adjacent_enemy[i] = random.uniform(-10,10)
+
+    #reset fitnesses
+    fitnesses = [[x, 0] for x in range(population_size)]
 
 def train(code_container1,code_container2,args):
 
@@ -456,7 +536,7 @@ def train(code_container1,code_container2,args):
     print(calculate_score(game))
 
     print(example_bots_list)
-    cut_population(game)
+    cut_population()
     print(example_bots_list)
 
     print(calculate_score(game))
