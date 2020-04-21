@@ -5,16 +5,12 @@ import sys
 import threading
 import random
 import numpy as np
-import os
 
 from battlehack20 import CodeContainer, Game, BasicViewer, GameConstants
 from battlehack20.engine.game.team import Team
 from battlehack20.engine.game.robottype import RobotType
 
-weights_dir = "saved_weights/"
-
 population_size = 120
-generation = 0
 
 input_count = 76
 hidden_count = 20
@@ -81,7 +77,7 @@ def check_space_wrapper(game, bot, r, c, board_size):
     if r < 0 or c < 0 or c >= board_size or r >= board_size:
         return False
     try:
-        return game.check_space(r, c)
+        return game.check_space(bot, r, c)
     except:
         return None
 
@@ -116,7 +112,7 @@ def pawn_turn(game,bot,bot_num):
                     continue
                 pawn = check_space_wrapper(game, bot, row+i, col+j, board_size)
                 if pawn == team:
-                    first_layer = np.append(first_layer,1)
+                    first_layer[count] = 1
                     first_layer = np.append(first_layer,0)
                     first_layer = np.append(first_layer,0)
                 elif pawn == opp_team:
@@ -156,8 +152,6 @@ def pawn_turn(game,bot,bot_num):
         first_layer = np.append(first_layer,1)
     else:
         first_layer = np.append(first_layer,0)
-
-    print(first_layer)
 
     # second_layer_len = 20
     
@@ -216,9 +210,9 @@ def spawn_weights_pro_plus_max_xyz(board, board_size, bot_num, team, opp_team, b
             if pawn != None: # there is a pawn
                 distance = abs(tempRow-backRow) # distance to pawn from your back row
                 if pawn == team: # your pawn
-                    weights[tempCol] = weights[tempCol] + overlord_weights_same_allied[bot_num][weight_index][distance]
+                    weights[tempCol] = weights[tempCol] + sameRowAlliedWeights[weight_index][distance]
                 else: # enemy pawn
-                    weights[tempCol] = weights[tempCol] + overlord_weights_same_enemy[bot_num][weight_index][distance]
+                    weights[tempCol] = weights[tempCol] + sameRowEnemyWeights[weight_index][distance]
 
         #check left adjacent col
         if tempCol > 0:
@@ -227,9 +221,9 @@ def spawn_weights_pro_plus_max_xyz(board, board_size, bot_num, team, opp_team, b
                 if pawn != None: # there is a pawn
                     distance = abs(tempRow-backRow) # distance to pawn from your back row
                     if pawn == team: # your pawn
-                        weights[tempCol] = weights[tempCol] + overlord_weights_adjacent_allied[bot_num][weight_index][distance]
+                        weights[tempCol] = weights[tempCol] + adjacentRowAlliedWeights[weight_index][distance]
                     else: # enemy pawn
-                        weights[tempCol] = weights[tempCol] + overlord_weights_adjacent_enemy[bot_num][weight_index][distance]
+                        weights[tempCol] = weights[tempCol] + adjacentRowEnemyWeights[weight_index][distance]
 
         #check right adjacent col
         if tempCol < board_size-1:
@@ -238,9 +232,9 @@ def spawn_weights_pro_plus_max_xyz(board, board_size, bot_num, team, opp_team, b
                 if pawn != None: # there is a pawn
                     distance = abs(tempRow-backRow) # distance to pawn from your back row
                     if pawn == team: # your pawn
-                        weights[tempCol] = weights[tempCol] + overlord_weights_adjacent_allied[bot_num][weight_index][distance]
+                        weights[tempCol] = weights[tempCol] + adjacentRowAlliedWeights[weight_index][distance]
                     else: # enemy pawn
-                        weights[tempCol] = weights[tempCol] + overlord_weights_adjacent_enemy[bot_num][weight_index][distance]
+                        weights[tempCol] = weights[tempCol] + adjacentRowEnemyWeights[weight_index][distance]
     return weights
 
 def maxIndex(list):
@@ -377,107 +371,6 @@ def turn(game, bot_index_white, bot_index_black):
     if game.running:
         game.queue[0], game.queue[1] = game.queue[1], game.queue[0] # Alternate spawn order of Overlords
 
-# WRITING TO FILE SYSTEM #
-
-def dir_name_generator(num):
-    dirLen = 4
-    newDir = ""
-    while len(newDir)+len(str(num)) < dirLen:
-        newDir=newDir+"0"
-    return newDir+str(num)
-
-def save_weights(best_bot):
-    newDir = dir_name_generator(generation)
-    
-    os.mkdir(weights_dir+newDir)
-    
-    #all weights
-    f=open(weights_dir+newDir+"/all_weights.txt", "w")
-
-    #pawn weights
-    for i in range(len(pawn_bias_L1)):
-        for j in range(len(pawn_bias_L1[0])):
-            f.write("%f\n"%pawn_bias_L1[i][j])
-
-    for i in range(len(pawn_weights_L1)):
-        for j in range(len(pawn_weights_L1[0])):
-            for k in range(len(pawn_weights_L1[0][0])):
-                f.write("%f\n"%pawn_weights_L1[i][j][k])
-
-    for i in range(len(pawn_bias_L2)):
-        for j in range(len(pawn_bias_L2[0])):
-            f.write("%f\n"%pawn_bias_L2[i][j])
-
-    for i in range(len(pawn_weights_L2)):
-        for j in range(len(pawn_weights_L2[0])):
-            for k in range(len(pawn_weights_L2[0][0])):
-                f.write("%f\n"%pawn_weights_L2[i][j][k])
-
-    #overlord weights
-    for i in range(len(overlord_weights_same_allied)):
-        for j in range(len(overlord_weights_same_allied[0])):
-            for k in range(len(overlord_weights_same_allied[0][0])):
-                f.write("%f\n"%overlord_weights_same_allied[i][j][k])
-
-    for i in range(len(overlord_weights_adjacent_allied)):
-        for j in range(len(overlord_weights_adjacent_allied[0])):
-            for k in range(len(overlord_weights_adjacent_allied[0][0])):
-                f.write("%f\n"%overlord_weights_adjacent_allied[i][j][k])
-
-    for i in range(len(overlord_weights_same_enemy)):
-        for j in range(len(overlord_weights_same_enemy[0])):
-            for k in range(len(overlord_weights_same_enemy[0][0])):
-                f.write("%f\n"%overlord_weights_same_enemy[i][j][k])
-
-    for i in range(len(overlord_weights_adjacent_enemy)):
-        for j in range(len(overlord_weights_adjacent_enemy[0])):
-            for k in range(len(overlord_weights_adjacent_enemy[0][0])):
-                f.write("%f\n"%overlord_weights_adjacent_enemy[i][j][k])
-
-    f.close() 
-
-    #best bot weights
-
-    f=open(weights_dir+newDir+"/best_bot.txt", "w")
-
-    #pawn weights
-    for j in range(len(pawn_bias_L1[0])):
-        f.write("%f\n"%pawn_bias_L1[best_bot][j])
-
-    for j in range(len(pawn_weights_L1[0])):
-        for k in range(len(pawn_weights_L1[0][0])):
-            f.write("%f\n"%pawn_weights_L1[best_bot][j][k])
-
-    for j in range(len(pawn_bias_L2[0])):
-        f.write("%f\n"%pawn_bias_L2[best_bot][j])
-
-    for j in range(len(pawn_weights_L2[0])):
-        for k in range(len(pawn_weights_L2[0][0])):
-            f.write("%f\n"%pawn_weights_L2[best_bot][j][k])
-
-    #overlord weights
-    for j in range(len(overlord_weights_same_allied[0])):
-        for k in range(len(overlord_weights_same_allied[0][0])):
-            f.write("%f\n"%overlord_weights_same_allied[best_bot][j][k])
-
-    for j in range(len(overlord_weights_adjacent_allied[0])):
-        for k in range(len(overlord_weights_adjacent_allied[0][0])):
-            f.write("%f\n"%overlord_weights_adjacent_allied[best_bot][j][k])
-
-    for j in range(len(overlord_weights_same_enemy[0])):
-        for k in range(len(overlord_weights_same_enemy[0][0])):
-            f.write("%f\n"%overlord_weights_same_enemy[best_bot][j][k])
-
-    for j in range(len(overlord_weights_adjacent_enemy[0])):
-        for k in range(len(overlord_weights_adjacent_enemy[0][0])):
-            f.write("%f\n"%overlord_weights_adjacent_enemy[best_bot][j][k])
-
-                    
-
-
-
-
-# GENETIC ALGORITHM #
 
 def test_generation(code_container1, args): # runs matches between the bots to determine fitness values
     for m in range(matchups_per_bot):
@@ -506,6 +399,8 @@ def test_generation(code_container1, args): # runs matches between the bots to d
             i+=2
     print(fitnesses)
 
+
+# GENETIC ALGORITHM #
 
 def calculate_score(game): #Calculate the fitness of each individual bot
     global point_values_list, penalty_values_list
@@ -539,21 +434,11 @@ def generate_random_bot(one_std_overlord_change):
     single_pawn_bias_L1 = ((np.random.rand(hidden_count)-0.5)*2).tolist()
     single_pawn_weights_L1 = ((np.random.rand(input_count,hidden_count)-0.5)*2).tolist()
     single_pawn_bias_L2 = ((np.random.rand(output_count)-0.5)*2).tolist()
-<<<<<<< HEAD
     single_pawn_weights_L2 = ((np.random.rand(hidden_count,output_count)-0.5)*2).tolist()
     single_overlord_weights_same_allied = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(sameRowAlliedWeights)).tolist()
     single_overlord_weights_adjacent_allied = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(adjacentRowAlliedWeights)).tolist()
     single_overlord_weights_same_enemy = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(sameRowEnemyWeights)).tolist()
     single_overlord_weights_adjacent_enemy = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(adjacentRowEnemyWeights)).tolist()
-=======
-    single_pawn_weights_L2 = ((np.random.rand(output_count,hidden_count)-0.5)*2).tolist()
-
-
-    single_overlord_weights_same_allied = (np.random.rand(weight_zones,board_size)*one_std_overlord_change+np.asarray(sameRowAlliedWeights)).tolist()
-    single_overlord_weights_adjacent_allied = (np.random.rand(weight_zones,board_size)*one_std_overlord_change+np.asarray(adjacentRowAlliedWeights)).tolist()
-    single_overlord_weights_same_enemy = (np.random.rand(weight_zones,board_size)*one_std_overlord_change+np.asarray(sameRowEnemyWeights)).tolist()
-    single_overlord_weights_adjacent_enemy = (np.random.rand(weight_zones,board_size)*one_std_overlord_change+np.asarray(adjacentRowEnemyWeights)).tolist()
->>>>>>> adc6aed2e98f8ebd9a135ce6c020800870552121
 
     return single_pawn_bias_L1, single_pawn_weights_L1, single_pawn_bias_L2, single_pawn_weights_L2, single_overlord_weights_same_allied, single_overlord_weights_adjacent_allied, single_overlord_weights_same_enemy, single_overlord_weights_adjacent_enemy
 
@@ -695,14 +580,8 @@ def new_generation():
 
 def train(code_container1,args):
 
-<<<<<<< HEAD
     #test_generation(code_container1, args)
     #return;
-=======
-    # save_weights(1)
-    # #test_generation(code_container1, args)
-    # return;
->>>>>>> adc6aed2e98f8ebd9a135ce6c020800870552121
 
     global example_bots_list
     random_seed = random.randint(0,1000000)
