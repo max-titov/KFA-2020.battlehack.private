@@ -13,7 +13,7 @@ from battlehack20.engine.game.robottype import RobotType
 
 weights_dir = "saved_weights/"
 
-population_size = 120
+population_size = 240
 
 generation = 0
 
@@ -21,7 +21,7 @@ input_count = 76
 hidden_count = 20
 output_count = 2
 
-mutation_chance = 0.05
+mutation_chance = 0.5
 replacement_chance = 0.99
 
 pawn_bias_L1 = np.zeros([population_size, hidden_count])
