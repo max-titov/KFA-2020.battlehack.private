@@ -33,11 +33,17 @@ point_values_list = [75, 25, 15, 10, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1]
 penalty_values_list = [50, 15, 10, 5, 3, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
 
 #Example bots list
-example_bots_list = [['bot id', 84], ['bot id2', 56], ['bot id3', 10]]
+example_bots_list = [[0,84], [1,56], [2,10]]
 
 fitnesses = np.zeros([population_size])
 
 matchups_per_bot = 2
+
+cut_percentage = 3
+
+dupe_number = 1
+
+random_number = 3
 
 # BOT CODE IS BELOW #
 
@@ -391,20 +397,34 @@ def calculate_score(game): #Calculate the fitness of each individual bot
     return 'White Score: ' + str(whiteScore - whitePenalty) + ', Black Score: ' + str(blackScore-blackPenalty)
     #return game.board
 
-#Cut population by 2/3
+#Cut population by 2/3 also change from example_bots_list to the real bots list
 def cut_population():
-    global example_bots_list
+    global example_bots_list, cut_percentage
     example_bots_list.sort(key=lambda x: x[1])
     new_generation = []
     #Change example_bots_list to population_size
-    for i in range(int(len(example_bots_list)/3)):
+    for i in range(int(len(example_bots_list)/cut_percentage)):
         new_generation.append(example_bots_list[len(example_bots_list) - i - 1])
     return new_generation
 
 #Create the new generation
 def new_generation():
+    global population_size, cut_percentage, dupe_number, random_number
     survivors = cut_population()
     
+    #Pawn stuff
+    new_layer1_bias = []
+    new_layer1_weights = []
+    new_layer2_bias = []
+    new_layer2_weights = []
+    #Overlord stuff
+    new_same_allied = []
+    new_adjacent_allied = []
+    new_same_enemy = []
+    new_adjancent_allied = []
+
+    for i in range(len(survivors)):
+        string = 'poop'
 
 def train(code_container1,code_container2,args):
     global example_bots_list
@@ -417,7 +437,7 @@ def train(code_container1,code_container2,args):
         turn(game,1)
 
     print(example_bots_list)
-    cut_population(game)
+    cut_population()
     print(example_bots_list)
 
     print(calculate_score(game))
