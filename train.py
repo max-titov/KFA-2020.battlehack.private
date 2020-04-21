@@ -12,7 +12,7 @@ from battlehack20.engine.game.robottype import RobotType
 
 population_size = 120
 
-input_count = 75
+input_count = 76
 hidden_count = 20
 output_count = 2
 
@@ -85,21 +85,6 @@ def dist_to_side(column, board_size):
     dist2 = board_size-1-column
     return dist1 if dist1 < dist2 else dist2
 
-def check_right(game,bot,board_size,opp_team, row, col):
-    return check_space_wrapper(game, bot, row + forward, col + 1, board_size) == opp_team
-
-def check_left(game,bot,board_size,opp_team, row, col):
-    return check_space_wrapper(game, bot, row + forward, col - 1, board_size) == opp_team
-
-def capture_right(game, bot, row, col):
-    game.capture(bot, row + forward, col + 1)
-
-def capture_left(game, bot, row, col):
-    game.capture(bot, row + forward, col - 1)
-
-def can_move_forward(game,bot,board_size, row, col):
-    return row + forward != -1 and row + forward != board_size and not check_space_wrapper(game, bot, row + forward, col, board_size)
-
 def pawn_turn(game,bot,bot_num):
     board_size = game.get_board_size()
 
@@ -117,83 +102,81 @@ def pawn_turn(game,bot,bot_num):
         opp_team = Team.WHITE
 
     row, col = bot.row,bot.col
-    first_layer = []
+    first_layer = np.asarray([])
+    count = 0
     if team == Team.WHITE:
         for i in range(-sensor_radius, sensor_radius+1):
-            to_print = ""
             for j in range(-sensor_radius, sensor_radius+1):
                 if i == 0 and j == 0:
                     continue
                 pawn = check_space_wrapper(game, bot, row+i, col+j, board_size)
-                to_print=to_print+" "+str(pawn)
                 if pawn == team:
-                    first_layer.append(1)
-                    first_layer.append(0)
-                    first_layer.append(0)
+                    first_layer[count] = 1
+                    first_layer = np.append(first_layer,0)
+                    first_layer = np.append(first_layer,0)
                 elif pawn == opp_team:
-                    first_layer.append(0)
-                    first_layer.append(1)
-                    first_layer.append(0)
+                    first_layer = np.append(first_layer,0)
+                    first_layer = np.append(first_layer,1)
+                    first_layer = np.append(first_layer,0)
                 else:
-                    first_layer.append(0)
-                    first_layer.append(0)
-                    first_layer.append(1)
-            dlog(to_print)
+                    first_layer = np.append(first_layer,0)
+                    first_layer = np.append(first_layer,0)
+                    first_layer = np.append(first_layer,1)
     else:
         for i in range(sensor_radius, -sensor_radius-1, -1):
-            to_print = ""
             for j in range(sensor_radius, -sensor_radius-1, -1):
                 if i == 0 and j == 0:
                     continue
                 pawn = check_space_wrapper(game, bot, row+i, col+j, board_size)
-                to_print=to_print+" "+str(pawn)
                 if pawn == team:
-                    first_layer.append(1)
-                    first_layer.append(0)
-                    first_layer.append(0)
+                    first_layer = np.append(first_layer,1)
+                    first_layer = np.append(first_layer,0)
+                    first_layer = np.append(first_layer,0)
                 elif pawn == opp_team:
-                    first_layer.append(0)
-                    first_layer.append(1)
-                    first_layer.append(0)
+                    first_layer = np.append(first_layer,0)
+                    first_layer = np.append(first_layer,1)
+                    first_layer = np.append(first_layer,0)
                 else:
-                    first_layer.append(0)
-                    first_layer.append(0)
-                    first_layer.append(1)
-            dlog(to_print)
+                    first_layer = np.append(first_layer,0)
+                    first_layer = np.append(first_layer,0)
+                    first_layer = np.append(first_layer,1)
 
-    first_layer.append(dist_to_side(col, board_size))
-    first_layer.append(abs(row-backRow))
+    first_layer = np.append(first_layer,dist_to_side(col, board_size))
+    first_layer = np.append(first_layer,abs(row-backRow))
     if col == 0 or col == board_size-1:
-        first_layer.append(1)
+        first_layer = np.append(first_layer,1)
     else:
-        first_layer.append(0)
+        first_layer = np.append(first_layer,0)
     if col == 1 or col == board_size-2:
-        first_layer.append(1)
+        first_layer = np.append(first_layer,1)
     else:
-        first_layer.append(0)
+        first_layer = np.append(first_layer,0)
 
-    second_layer = []
     second_layer_len = 20
-    test_weights = [[random.randint(0,10) for x in range(len(first_layer))] for y in range(second_layer_len)]
-    test_bias = [random.randint(0,10) for x in range(second_layer_len)]
+    test_weights = np.asarray([[random.randint(0,10) for x in range(hidden_count)] for y in range(input_count)])
+    test_bias = np.asarray([random.randint(0,10) for x in range(hidden_count)])
 
-    for i in range(second_layer_len):
-        value = test_bias[i]
-        for j in range(len(first_layer)):
-            value += first_layer[j] * test_weights[i][j]
-        second_layer.append(value)
+    second_layer = np.dot(first_layer,test_weights) + test_bias
+
+    # for i in range(second_layer_len):
+    #     value = test_bias[i]
+    #     for j in range(len(first_layer)):
+    #         value += first_layer[j] * test_weights[i][j]
+    #     second_layer.append(value)
     #dlog('Second layer values: ' + str(second_layer))
 
     #third layer
-    output_layer = []
+    
     output_layer_len = 2
-    second_weights = [[random.randint(0,10) for x in range(second_layer_len)] for y in range(output_layer_len)]
-    second_bias = [random.randint(0,10) for x in range(output_layer_len)]
-    for i in range(output_layer_len):
-        tempValue = second_bias[i]
-        for j in range(second_layer_len):
-            tempValue += second_layer[j] * second_weights[i][j]
-        output_layer.append(tempValue)
+    second_weights = np.asarray([[random.randint(0,10) for x in range(output_count)] for y in range(hidden_count)])
+    second_bias = np.asarray([random.randint(0,10) for x in range(output_layer_len)])
+
+    output_layer = np.dot(second_layer,second_weights) + second_bias
+    # for i in range(output_layer_len):
+    #     tempValue = second_bias[i]
+    #     for j in range(second_layer_len):
+    #         tempValue += second_layer[j] * second_weights[i][j]
+    #     output_layer.append(tempValue)
     #dlog('Output layer values: ' + str(output_layer))
     
     if check_space_wrapper(game, bot, row + forward, col + 1, board_size) == opp_team: # up and right
@@ -359,7 +342,7 @@ def check_over(game):
 #     else:
 #         raise GameError('game is over')
 
-def turn(game, bot_num):
+def turn(game, bot_index_white, bot_index_black):
     game.round += 1
 
     if game.round > game.max_rounds:
@@ -370,17 +353,21 @@ def turn(game, bot_num):
     for i in range(game.robot_count):
         if i in game.queue:
             game.robot = game.queue[i]
-            if game.robot.type ==RobotType.PAWN:
-                pawn_turn(game,game.robot,bot_num)
+            bot_index = 0
+            if game.robot.team == Team.WHITE:
+                bot_index = bot_index_white
             else:
-                overlord_turn(game,game.robot,bot_num)
+                bot_index = bot_index_black
+            if game.robot.type == RobotType.PAWN:
+                pawn_turn(game,game.robot,bot_index)
+            else:
+                overlord_turn(game,game.robot,bot_index)
 
             check_over(game)
 
 
     if game.running:
         game.queue[0], game.queue[1] = game.queue[1], game.queue[0] # Alternate spawn order of Overlords
-        game.board_states.append([row[:] for row in game.board])
 
 def test_generation(args): # runs matches between the bots to determine fitness values
     for m in range(matchups_per_bot):
@@ -395,7 +382,8 @@ def test_generation(args): # runs matches between the bots to determine fitness 
             while True:
                 if not game.running:
                     break
-                turn(game,1)
+                turn(game,queue[i],queue[i+1])
+            i+=2
 
 
 # GENETIC ALGORITHM #
