@@ -8,6 +8,7 @@ import numpy as np
 
 from battlehack20 import CodeContainer, Game, BasicViewer, GameConstants
 from battlehack20.engine.game.team import Team
+from battlehack20.engine.game.robottype import RobotType
 
 population_size = 120
 
@@ -61,7 +62,7 @@ adjacentRowEnemyWeights = [
 [-500,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1],
 [-500,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1]]
 
-DEBUG = 1
+DEBUG = 0
 def dlog(str):
     if DEBUG > 0:
         print(str)
@@ -71,7 +72,7 @@ def check_space_wrapper(game, bot, r, c, board_size):
     if r < 0 or c < 0 or c >= board_size or r >= board_size:
         return False
     try:
-        return game.pawn_check_space(bot, r, c)
+        return game.check_space(bot, r, c)
     except:
         return None
 
@@ -98,7 +99,7 @@ def can_move_forward(game,bot,board_size, row, col):
 def pawn_turn(game,bot,bot_num):
     board_size = game.get_board_size()
 
-    team = game.get_team(bot)
+    team = bot.team
 
     sensor_radius = 2
 
@@ -111,8 +112,7 @@ def pawn_turn(game,bot,bot_num):
         forward = -1
         opp_team = Team.WHITE
 
-    row, col = game.get_location(bot)
-
+    row, col = bot.row,bot.col
     first_layer = []
     if team == Team.WHITE:
         for i in range(-sensor_radius, sensor_radius+1):
@@ -201,7 +201,7 @@ def pawn_turn(game,bot,bot_num):
     # otherwise try to move forward
     elif row + forward != -1 and row + forward != board_size and not check_space_wrapper(game, bot, row + forward, col, board_size) and output_layer[0] > output_layer[1]:
         #if row < whiteHalfway:
-        game.move_forward(bot)
+        game.move_forward()
 
 
 # OVERLORD #
@@ -260,7 +260,7 @@ def maxIndex(list):
 def overlord_turn(game,bot,bot_num):
     board_size = game.get_board_size()
 
-    team = game.get_team(bot)
+    team = bot.team
 
     if team == Team.WHITE:
         backRow = 0
@@ -278,11 +278,10 @@ def overlord_turn(game,bot,bot_num):
     for i in range(board_size):
         debug = debug + str(weights[i]) + ' '
     dlog(debug)
-
     for i in range(board_size):
         maxWeightCol = maxIndex(weights)
-        if not game.hq_check_space(backRow, maxWeightCol):
-            game.spawn(bot, backRow, maxWeightCol)
+        if not game.check_space(backRow, maxWeightCol):
+            game.new_robot(backRow, maxWeightCol, team, RobotType.PAWN)
             break
         else:
             weights[maxWeightCol] = -10000000
@@ -295,8 +294,8 @@ def check_over(game):
 
     white, black = 0, 0
     for col in range(game.board_size):
-        if game.board[0][col] and str(game.board[0][col].team) == "Team.BLACK": black += 1
-        if game.board[game.board_size - 1][col] and str(game.board[game.board_size - 1][col].team) == "Team.WHITE": white += 1
+        if game.board[0][col] and game.board[0][col].team == Team.BLACK: black += 1
+        if game.board[game.board_size - 1][col] and game.board[game.board_size - 1][col].team == Team.WHITE: white += 1
 
     if black >= (game.board_size + 1) // 2:
         winner = True
@@ -314,49 +313,70 @@ def check_over(game):
                 if tie:
                     w, b = 0, 0
                     for c in range(game.board_size):
-                        if game.board[r][c] and str(game.board[r][c].team) == "Team.BLACK": b += 1
-                        if game.board[game.board_size - r - 1][c] and str(game.board[game.board_size - r - 1][c].team) == "Team.WHITE": w += 1
+                        if game.board[r][c] and game.board[r][c].team == Team.BLACK: b += 1
+                        if game.board[game.board_size - r - 1][c] and game.board[game.board_size - r - 1][c].team == Team.WHITE: w += 1
                     if w == b: continue
-                    game.winner = "Team.WHITE" if w > b else "Team.BLACK"
+                    game.winner = Team.WHITE if w > b else Team.BLACK
                     tie = False
             if tie:
-                game.winner = str(random.choice([Team.WHITE, Team.BLACK]))
+                game.winner = random.choice([Team.WHITE, Team.BLACK])
         else:
-            game.winner = "Team.WHITE" if white > black else "Team.BLACK"
+            game.winner = Team.WHITE if white > black else Team.BLACK
         game.running = False
 
-def turn(game,bot_num): #shameless stolen off of the engine ;)
-    if game.running:
-        game.round += 1
+# def turn(game,bot_num): #shameless stolen off of the engine ;)
+#     if game.running:
+#         game.round += 1
 
-        if game.round > game.max_rounds:
+#         if game.round > game.max_rounds:
+#             check_over(game)
+
+#         if game.debug:
+#             game.log_info(f'Turn {game.round}')
+#             game.log_info(f'Queue: {game.queue}')
+#             game.log_info(f'Lords: {game.lords}')
+#         for i in range(game.robot_count):
+#             if i in game.queue:
+#                 robot = game.queue[i]
+#                 robot.has_moved = False
+#                 if robot.type == RobotType.PAWN:
+#                     pawn_turn(game,robot,bot_num)
+
+#                 check_over(game)
+
+#         if game.running:
+#             for robot in game.lords:
+#                 robot.has_moved = False
+#                 overlord_turn(game,robot,bot_num)
+
+#             game.lords.reverse()  # the HQ's will alternate spawn order
+#             game.board_states.append([row[:] for row in game.board])
+#         print(game.board)
+#     else:
+#         raise GameError('game is over')
+
+def turn(game, bot_num):
+    game.round += 1
+
+    if game.round > game.max_rounds:
+        check_over(game)
+
+    print(game.round)
+
+    for i in range(game.robot_count):
+        if i in game.queue:
+            game.robot = game.queue[i]
+            if game.robot.type ==RobotType.PAWN:
+                pawn_turn(game,game.robot,bot_num)
+            else:
+                overlord_turn(game,game.robot,bot_num)
+
             check_over(game)
 
-        if game.debug:
-            game.log_info(f'Turn {game.round}')
-            game.log_info(f'Queue: {game.queue}')
-            game.log_info(f'Lords: {game.lords}')
 
-        for i in range(game.robot_count):
-            if i in game.queue:
-                robot = game.queue[i]
-                robot.has_moved = False
-                pawn_turn(game,robot,bot_num)
-
-                if not robot.runner.initialized:
-                    game.delete_robot(i)
-                check_over(game)
-
-        if game.running:
-            for robot in game.lords:
-                robot.has_moved = False
-                overlord_turn(game,robot,bot_num)
-
-            game.lords.reverse()  # the HQ's will alternate spawn order
-            game.board_states.append([row[:] for row in game.board])
-    else:
-        raise GameError('game is over')
-
+    if game.running:
+        game.queue[0], game.queue[1] = game.queue[1], game.queue[0] # Alternate spawn order of Overlords
+        game.board_states.append([row[:] for row in game.board])
 
 def test_generation(args): # runs matches between the bots to determine fitness values
     for m in range(matchups_per_bot):
@@ -383,10 +403,10 @@ def calculate_score(game): #Calculate the fitness of each individual bot
     whitePenalty, blackPenalty = 0,0
     for row in range(len(game_board)):
         for col in range(len(game_board[0])):
-            if game_board[row][col] and str(game_board[row][col].team) == 'Team.BLACK':
+            if game_board[row][col] and game_board[row][col].team == Team.BLACK:
                 blackScore += point_values_list[row]
                 whitePenalty += penalty_values_list[row]
-            elif game_board[row][col] and str(game_board[row][col].team) == 'Team.WHITE':
+            elif game_board[row][col] and game_board[row][col].team == Team.WHITE:
                 whiteScore += point_values_list[len(point_values_list)-1-row]
                 blackPenalty += penalty_values_list[len(point_values_list)-1-row]
     return 'White Score: ' + str(whiteScore - whitePenalty) + ', Black Score: ' + str(blackScore-blackPenalty)
@@ -423,21 +443,17 @@ def new_generation():
 
 def train(code_container1,code_container2,args):
 
-    single_pawn_bias_L1, single_pawn_weights_L1, single_pawn_bias_L2, single_pawn_weights_L2, single_overlord_weights_same_allied, single_overlord_weights_adjacent_allied, single_overlord_weights_same_enemy, single_overlord_weights_adjacent_enemy = generate_random_bot(10)
-
-    print(single_pawn_bias_L1)
-    print("\n\n\n\n")
-    print(single_overlord_weights_same_allied)
-    return
-
     global example_bots_list
     random_seed = random.randint(0,1000000)
+    robot_count = 0
     game = Game([code_container1, code_container2], board_size=args.board_size, max_rounds=args.max_rounds, 
             seed=random_seed, debug=False)
     while True:
         if not game.running:
             break
         turn(game,1)
+
+    print(calculate_score(game))
 
     print(example_bots_list)
     cut_population(game)
