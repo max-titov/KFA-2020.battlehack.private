@@ -30,6 +30,7 @@ overlord_weights_adjacent_enemy = np.zeros([population_size, weight_zones, board
 
 #Point values for each subsequent row from the board end:
 point_values_list = [75, 25, 15, 10, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1]
+penalty_values_list = [50, 15, 10, 5, 3, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
 
 #Example bots list
 example_bots_list = [['bot id', 84], ['bot id2', 56], ['bot id3', 10]]
@@ -375,25 +376,32 @@ def test_generation(args): # runs matches between the bots to determine fitness 
 
 
 def calculate_score(game):
-    global point_values_list
+    global point_values_list, penalty_values_list
     game_board = game.board
     whiteScore, blackScore = 0,0
+    whitePenalty, blackPenalty = 0,0
     for row in range(len(game_board)):
         for col in range(len(game_board[0])):
             if game_board[row][col] and str(game_board[row][col].team) == 'Team.BLACK':
                 blackScore += point_values_list[row]
+                whitePenalty += penalty_values_list[row]
             elif game_board[row][col] and str(game_board[row][col].team) == 'Team.WHITE':
                 whiteScore += point_values_list[len(point_values_list)-1-row]
-    return 'White Score: ' + str(whiteScore) + ', Black Score: ' + str(blackScore)
+                blackPenalty += penalty_values_list[len(point_values_list)-1-row]
+    return 'White Score: ' + str(whiteScore - whitePenalty) + ', Black Score: ' + str(blackScore-blackPenalty)
     #return game.board
 
 def cut_population(game):
+    global example_bots_list
     example_bots_list.sort(key=lambda x: x[1])
     new_generation = []
-
+    #Change example_bots_list to population_size
+    for i in range(int(len(example_bots_list)/3)):
+        new_generation.append(example_bots_list[len(example_bots_list) - i - 1])
+    example_bots_list = new_generation
 
 def train(code_container1,code_container2,args):
-
+    global example_bots_list
     random_seed = random.randint(0,1000000)
     game = Game([code_container1, code_container2], board_size=args.board_size, max_rounds=args.max_rounds, 
             seed=random_seed, debug=False)
@@ -402,7 +410,7 @@ def train(code_container1,code_container2,args):
             break
         turn(game,1)
 
-
+    print(example_bots_list)
     cut_population(game)
     print(example_bots_list)
 
