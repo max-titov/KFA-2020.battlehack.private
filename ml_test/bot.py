@@ -111,6 +111,11 @@ def init():
 def pawn_init():
 	return
 
+def dist_to_side(column):
+	dist1 = column
+	dist2 = board_size-1-column
+	return dist1 if dist1 < dist2 else dist2
+
 def check_right():
 	return check_space_wrapper(row + forward, col + 1) == opp_team
 
@@ -149,10 +154,12 @@ def pawn_turn():
 	first_layer = []
 	if team == Team.WHITE:
 		for i in range(-sensor_radius, sensor_radius+1):
+			to_print = ""
 			for j in range(-sensor_radius, sensor_radius+1):
 				if i == 0 and j == 0:
 					continue
 				pawn = check_space_wrapper(row+i, col+j)
+				to_print=to_print+" "+str(pawn)
 				if pawn == team:
 					first_layer.append(1)
 					first_layer.append(0)
@@ -165,12 +172,39 @@ def pawn_turn():
 					first_layer.append(0)
 					first_layer.append(0)
 					first_layer.append(1)
-		first_layer.append(row)
-		first_layer.append(col)
-		if col == 0 or col == 15:
-			first_layer.append(1)
-		else:
-			first_layer.append(0)
+			dlog(to_print)
+	else:
+		for i in range(sensor_radius, -sensor_radius-1, -1):
+			to_print = ""
+			for j in range(sensor_radius, -sensor_radius-1, -1):
+				if i == 0 and j == 0:
+					continue
+				pawn = check_space_wrapper(row+i, col+j)
+				to_print=to_print+" "+str(pawn)
+				if pawn == team:
+					first_layer.append(1)
+					first_layer.append(0)
+					first_layer.append(0)
+				elif pawn == opp_team:
+					first_layer.append(0)
+					first_layer.append(1)
+					first_layer.append(0)
+				else:
+					first_layer.append(0)
+					first_layer.append(0)
+					first_layer.append(1)
+			dlog(to_print)
+
+	first_layer.append(dist_to_side(col))
+	first_layer.append(abs(row-backRow))
+	if col == 0 or col == board_size-1:
+		first_layer.append(1)
+	else:
+		first_layer.append(0)
+	if col == 1 or col == board_size-2:
+		first_layer.append(1)
+	else:
+		first_layer.append(0)
 
 	second_layer = []
 	second_layer_len = 20
@@ -214,11 +248,6 @@ def pawn_turn():
 ##############################################################
 ########################## OVERLORD ##########################
 ##############################################################
-
-def dist_to_side(column):
-	dist1 = column
-	dist2 = board_size-1-column
-	return dist1 if dist1 < dist2 else dist2
 
 def overlord_init():
 	global backRow
