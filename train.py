@@ -34,7 +34,7 @@ point_values_list = [75, 25, 15, 10, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1]
 penalty_values_list = [50, 15, 10, 5, 3, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
 
 #Example bots list
-fitnesses = [[x, random.randint(1,100)] for x in range(population_size)]
+fitnesses = [[x, 0] for x in range(population_size)]
 
 matchups_per_bot = 2
 
@@ -67,8 +67,6 @@ adjacentRowEnemyWeights = [
 [-500,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1]]
 
 DEBUG = 0
-
-overlord_weights_same_allied[0][0] = sameRowAlliedWeights[0]
 
 def dlog(str):
     if DEBUG > 0:
@@ -434,13 +432,9 @@ def cut_population():
 
 def generate_random_bot(one_std_overlord_change):
     single_pawn_bias_L1 = ((np.random.rand(hidden_count)-0.5)*2).tolist()
-    single_pawn_weights_L1 = ((np.random.rand(hidden_count,input_count)-0.5)*2).tolist()
+    single_pawn_weights_L1 = ((np.random.rand(input_count,hidden_count)-0.5)*2).tolist()
     single_pawn_bias_L2 = ((np.random.rand(output_count)-0.5)*2).tolist()
-    single_pawn_weights_L2 = ((np.random.rand(output_count,hidden_count)-0.5)*2).tolist()
-
-    print(((np.random.rand(output_count)-0.5)*2).shape)
-
-
+    single_pawn_weights_L2 = ((np.random.rand(hidden_count,output_count)-0.5)*2).tolist()
     single_overlord_weights_same_allied = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(sameRowAlliedWeights)).tolist()
     single_overlord_weights_adjacent_allied = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(adjacentRowAlliedWeights)).tolist()
     single_overlord_weights_same_enemy = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(sameRowEnemyWeights)).tolist()
@@ -454,9 +448,9 @@ def new_generation():
     survivors = cut_population()
     
     #Pawn stuff
-    new_layer1_bias = []
+    new_layer1_bias = pawn_bias_L1
     new_layer1_weights = pawn_weights_L1
-    new_layer2_bias = []
+    new_layer2_bias = pawn_bias_L2
     new_layer2_weights = pawn_weights_L2
     #Overlord stuff
     new_same_allied = overlord_weights_same_allied
@@ -464,30 +458,36 @@ def new_generation():
     new_same_enemy = overlord_weights_same_enemy
     new_adjacent_enemy = overlord_weights_adjacent_enemy
 
-    print("NSA len: "+str(len(new_same_allied)))
-    print("NSA[0] len: "+str(len(new_same_allied[0])))
-    print("NSA[0][0] len: "+str(len(new_same_allied[0][0])))
-    print("NSA[0][0][0]: "+str(new_same_allied[0][0][0]))
+    #print("NSA len: "+str(len(new_same_allied)))
+    #print("NSA[0] len: "+str(len(new_same_allied[0])))
+    #print("NSA[0][0] len: "+str(len(new_same_allied[0][0])))
+    #print("NSA[0][0][0]: "+str(new_same_allied[0][0][0]))
 
     #reading in and duplicating survivors
     for j in range(population_size//dupe_number):
         for i in range(len(survivors)):
             #print("Survivor original index: "+str((survivors[i])[0]))
             #print("Survivor pawn bias: "+str(pawn_bias_L1[(survivors[i])[0]]))
-            new_layer1_bias.append(pawn_bias_L1[(survivors[i])[0]])
-            new_layer1_weights[i] = pawn_weights_L1[(survivors[i])[0]]
-            new_layer2_bias.append(pawn_bias_L2[(survivors[i])[0]])
+            new_layer1_bias[i] = pawn_bias_L1[(survivors[i])[0]]
+            #for j in range(len(new_layer1_weights[0])):    
+            new_layer1_weights[i] = pawn_weights_L1[(survivors[i])[0]]    
+            new_layer2_bias[i] = pawn_bias_L2[(survivors[i])[0]]
+            #for j in range(len(new_layer2_weights)):    
             new_layer2_weights[i] = pawn_weights_L2[(survivors[i])[0]]
+            #for j in range(len(new_same_allied)):
             new_same_allied[i] = overlord_weights_same_allied[(survivors[i])[0]]
+            #for j in range(len(new_adjacent_allied)):
             new_adjacent_allied[i] = overlord_weights_adjacent_allied[(survivors[i])[0]]
+            #for j in range(len(new_same_enemy)):
             new_same_enemy[i] = overlord_weights_same_enemy[(survivors[i])[0]]
+            #for j in range(len(new_adjacent_enemy)):
             new_adjacent_enemy[i] = overlord_weights_adjacent_enemy[(survivors[i])[0]]
 
     #creating and reading in randomly generated bots
     for i in range(population_size//random_number):
-        s_l1_bias, s_l1_weight, s_l2_bias, s_l2_weight, s_same_a, s_adjacent_a, s_same_e, s_adjacent_e = generate_random_bot(15)
-        new_layer1_bias.append(s_l1_bias)
-        new_layer2_bias.append(s_l2_bias)
+        s_l1_bias, s_l1_weight, s_l2_bias, s_l2_weight, s_same_a, s_adjacent_a, s_same_e, s_adjacent_e = generate_random_bot(10)
+        new_layer1_bias[i] = s_l1_bias
+        new_layer2_bias[i] = s_l2_bias
         #for j in range(len(s_l1_weight)):
         new_layer1_weights[i] = s_l1_weight
         #for j in range(len(s_l2_weight)):
@@ -496,10 +496,10 @@ def new_generation():
         new_same_allied[i] = s_same_a
         #for j in range(len(s_adjacent_a)):
         new_adjacent_allied[i] = s_adjacent_a
-        for j in range(len(s_same_e)):
-            new_same_enemy[i][j] = s_same_e
-        for j in range(len(s_adjacent_e)):
-            new_adjacent_enemy[i][j] = s_adjacent_e
+        #for j in range(len(s_same_e)):
+        new_same_enemy[i] = s_same_e
+        #for j in range(len(s_adjacent_e)):
+        new_adjacent_enemy[i] = s_adjacent_e
 
         #print("New layer1 weights: "+str(new_layer1_weights[0]))
     print("NSA len: "+str(len(new_same_allied)))
@@ -507,9 +507,10 @@ def new_generation():
     print("NSA[0][0] len: "+str(len(new_same_allied[0][0])))
     print("NSA[0][0][0]: "+str(new_same_allied[0][0][0]))
     #5% chance of a mutation within each item field --> changes are between -25% and 25%
-    #print("OWSA len: " + str(len(overlord_weights_same_allied)))
-    #print("OWSA[0] len: "+str(len(overlord_weights_adjacent_allied[0])))
-    #print("OWSA[0][0] len: "+str(len(overlord_weights_adjacent_allied[0][0])))
+    print("OWSA len: " + str(len(overlord_weights_same_allied)))
+    print("OWSA[0] len: "+str(len(overlord_weights_adjacent_allied[0])))
+    print("OWSA[0][0] len: "+str(len(overlord_weights_adjacent_allied[0][0])))
+    print("overlord_weights_same_allied[0][0]: "+str(len(overlord_weights_same_allied[0][0])))
     for i in range(population_size):
         for j in range(len(pawn_bias_L1[0])):
             randFloat = random.uniform(0,1)
@@ -517,6 +518,7 @@ def new_generation():
                 new_layer1_bias[i][j] += random.uniform(-0.25, 0.25)*new_layer1_bias[i][j]
             elif randFloat > 0.99: 
                 new_layer1_bias[i][j] = random.uniform(-10,10)
+        print('success 1')
         for j in range(len(pawn_weights_L1[0])):
             for z in range(len(pawn_weights_L1[0][0])):
                 randFloat = random.uniform(0,1)
@@ -524,12 +526,22 @@ def new_generation():
                     new_layer1_weights[i][j][z] += random.uniform(-0.25, 0.25)*new_layer1_weights[i][j][z]
                 elif randFloat > 0.99:
                     new_layer1_weights[i][j][z] = random.uniform(-10,10)
+        print('success 2')
         for j in range(len(pawn_bias_L2[0])):
             randFloat = random.uniform(0,1)
             if randFloat < 0.05: 
                 new_layer2_bias[i][j] += random.uniform(-0.25, 0.25)*new_layer2_bias[i][j]
             elif randFloat > 0.99:
                 new_layer2_bias[i][j] = random.uniform(-10,10)
+        print('success 3')
+        for j in range(len(pawn_weights_L2[0])):
+            for z in range(len(pawn_weights_L2[0][0])):
+                randFloat = random.uniform(0,1)
+                if randFloat < 0.05: 
+                    new_layer2_weights[i][j][z] += random.uniform(-0.25, 0.25)*new_layer2_weights[i][j][z]
+                elif randFloat > 0.99:
+                    new_layer2_weights[i][j][z] = random.uniform(-10,10)
+        print('success 4')
         for j in range(len(overlord_weights_same_allied[0])):
             for z in range(len(overlord_weights_same_allied[0][0])):
                 randFloat = random.uniform(0,1)
@@ -537,6 +549,7 @@ def new_generation():
                     new_same_allied[i][j][z] += random.uniform(-0.25, 0.25)*new_same_allied[i][j][z]
                 elif randFloat > 0.99:
                     new_same_allied[i] = random.uniform(-10,10)
+        print('success 5')
         for j in range(len(overlord_weights_adjacent_allied[0])):
             for z in range(len(overlord_weights_adjacent_allied[0][0])):
                 randFloat = random.uniform(0,1)
@@ -544,6 +557,7 @@ def new_generation():
                     new_adjacent_allied[i][j][z] += random.uniform(-0.25, 0.25)*new_adjacent_allied[i][j][z]
                 elif randFloat > 0.99:
                     new_adjacent_allied[i] = random.uniform(-10,10)
+        print('success 6')
         for j in range(len(overlord_weights_same_enemy[0])):
             for z in range(len(overlord_weights_same_enemy[0][0])):
                 randFloat = random.uniform(0,1)
@@ -551,6 +565,7 @@ def new_generation():
                     new_same_enemy[i][j][z] += random.uniform(-0.25, 0.25)*new_same_enemy[i][j][z]
                 elif randFloat > 0.99:
                     new_same_enemy[i] = random.uniform(-10,10)
+        print('success 7')
         for j in range(len(overlord_weights_adjacent_enemy[0])):
             for z in range(len(overlord_weights_adjacent_enemy[0][0])):
                 randFloat = random.uniform(0,1)
@@ -558,14 +573,12 @@ def new_generation():
                     new_adjacent_enemy[i][j][z] += random.uniform(-0.25, 0.25)*new_adjacent_enemy[i][j][z]
                 elif randFloat > 0.99:
                     new_adjacent_enemy[i] = random.uniform(-10,10)
+        print('success 8')
 
     #reset fitnesses
     fitnesses = [[x, 0] for x in range(population_size)]
 
 def train(code_container1,args):
-
-    s_l1_bias, s_l1_weight, s_l2_bias, s_l2_weight, s_same_a, s_adjacent_a, s_same_e, s_adjacent_e = generate_random_bot(15)
-    return
 
     #test_generation(code_container1, args)
     #return;
