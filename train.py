@@ -24,6 +24,7 @@ weight_zones = 3 # on border, one away from border, all other cases
 board_size = 16
 
 overlord_weights_same_allied = np.zeros([population_size, weight_zones, board_size]).tolist()
+
 overlord_weights_adjacent_allied = np.zeros([population_size, weight_zones, board_size]).tolist()
 overlord_weights_same_enemy = np.zeros([population_size, weight_zones, board_size]).tolist()
 overlord_weights_adjacent_enemy = np.zeros([population_size, weight_zones, board_size]).tolist()
@@ -33,7 +34,7 @@ point_values_list = [75, 25, 15, 10, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1]
 penalty_values_list = [50, 15, 10, 5, 3, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
 
 #Example bots list
-fitnesses = [[x, 0] for x in range(population_size)]
+fitnesses = [[x, random.randint(1,100)] for x in range(population_size)]
 
 matchups_per_bot = 2
 
@@ -64,6 +65,8 @@ adjacentRowEnemyWeights = [
 [-500,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1],
 [-500,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1],
 [-500,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1]]
+
+overlord_weights_same_allied[0][0] = sameRowAlliedWeights[0]
 
 DEBUG = 1
 def dlog(str):
@@ -398,12 +401,12 @@ def calculate_score(game): #Calculate the fitness of each individual bot
 
 #Cut population by 2/3 also change from example_bots_list to the real bots list
 def cut_population():
-    global example_bots_list, cut_percentage
-    example_bots_list.sort(key=lambda x: x[1])
+    global fitnesses, cut_percentage
+    fitnesses.sort(key=lambda x: x[1])
     new_generation = []
     #Change example_bots_list to population_size
-    for i in range(int(len(example_bots_list)/cut_percentage)):
-        new_generation.append(example_bots_list[len(example_bots_list) - i - 1])
+    for i in range(int(len(fitnesses)/cut_percentage)):
+        new_generation.append(fitnesses[len(fitnesses) - i - 1])
     return new_generation
 
 def generate_random_bot(one_std_overlord_change):
@@ -437,8 +440,10 @@ def new_generation():
     new_adjacent_enemy = []
 
     #reading in and duplicating survivors
-    for j in range(population_size/dupe_number):
+    for j in range(population_size//dupe_number):
         for i in range(len(survivors)):
+            #print("Survivor original index: "+str((survivors[i])[0]))
+            #print("Survivor pawn bias: "+str(pawn_bias_L1[(survivors[i])[0]]))
             new_layer1_bias.append(pawn_bias_L1[(survivors[i])[0]])
             new_layer1_weights.append(pawn_bias_L2[(survivors[i])[0]])
             new_layer2_bias.append(pawn_bias_L2[(survivors[i])[0]])
@@ -449,7 +454,7 @@ def new_generation():
             new_adjacent_enemy.append(overlord_weights_adjacent_enemy[(survivors[i])[0]])
 
     #creating and reading in randomly generated bots
-    for i in range(population_size/random_number):
+    for i in range(population_size//random_number):
         s_l1_bias, s_l1_weight, s_l2_bias, s_l2_weight, s_same_a, s_adjacent_a, s_same_e, s_adjacent_e = generate_random_bot(15)
         new_layer1_bias.append(s_l1_bias)
         new_layer1_weights.append(s_l1_weight)
@@ -460,8 +465,10 @@ def new_generation():
         new_same_enemy.append(s_same_e)
         new_adjacent_enemy.append(s_adjacent_e)
 
+        #print("New layer1 weights: "+str(new_layer1_weights[0]))
+
     #5% chance of a mutation within each item field --> changes are between -25% and 25%
-    for i in range(len(population_size)):
+    for i in range(population_size):
         randFloat = random.uniform(0,1)
         if randFloat < 0.05: new_layer1_bias[i] += random.uniform(-0.25, 0.25)*new_layer1_bias[i]
         randFloat = random.uniform(0,1)
@@ -476,6 +483,7 @@ def new_generation():
         if randFloat < 0.05: new_adjacent_allied[i] += random.uniform(-0.25, 0.25)*new_adjacent_allied[i]
         randFloat = random.uniform(0,1)
         if randFloat < 0.05: new_same_enemy[i] += random.uniform(-0.25, 0.25)*new_same_enemy[i]
+        print("new same enemy: "+str(new_same_enemy[0]))
         randFloat = random.uniform(0,1)
         if randFloat < 0.05: new_adjacent_enemy[i] += random.uniform(-0.25, 0.25)*new_adjacent_enemy[i]
 
@@ -500,6 +508,7 @@ def new_generation():
 
     #reset fitnesses
     fitnesses = [[x, 0] for x in range(population_size)]
+    print(new_same_allied)
 
 def train(code_container1,code_container2,args):
 
@@ -512,11 +521,8 @@ def train(code_container1,code_container2,args):
             break
         turn(game,1)
 
-    print(example_bots_list)
-    cut_population()
-    print(example_bots_list)
-
-    print(calculate_score(game))
+    print(overlord_weights_same_allied)
+    new_generation()
 
     print(f'{game.winner} wins!')
 
