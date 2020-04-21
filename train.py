@@ -371,8 +371,6 @@ def turn(game, bot_index_white, bot_index_black):
     if game.running:
         game.queue[0], game.queue[1] = game.queue[1], game.queue[0] # Alternate spawn order of Overlords
 
-<<<<<<< HEAD
-=======
 # WRITING TO FILE SYSTEM #
 
 def dir_name_generator(num):
@@ -474,8 +472,6 @@ def save_weights(best_bot):
 
 
 # GENETIC ALGORITHM #
->>>>>>> 6d65b46ce225f8ee0c0a7bf8e6070175edc07da4
-
 def test_generation(code_container1, args): # runs matches between the bots to determine fitness values
     for m in range(matchups_per_bot):
         queue = list(range(population_size)) #queue to determine matchups
@@ -539,18 +535,10 @@ def generate_random_bot(one_std_overlord_change):
     single_pawn_weights_L1 = ((np.random.rand(input_count,hidden_count)-0.5)*2).tolist()
     single_pawn_bias_L2 = ((np.random.rand(output_count)-0.5)*2).tolist()
     single_pawn_weights_L2 = ((np.random.rand(hidden_count,output_count)-0.5)*2).tolist()
-<<<<<<< HEAD
-    single_overlord_weights_same_allied = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(sameRowAlliedWeights)).tolist()
-    single_overlord_weights_adjacent_allied = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(adjacentRowAlliedWeights)).tolist()
-    single_overlord_weights_same_enemy = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(sameRowEnemyWeights)).tolist()
-    single_overlord_weights_adjacent_enemy = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(adjacentRowEnemyWeights)).tolist()
-=======
-
     single_overlord_weights_same_allied = (np.random.rand(weight_zones,board_size)*one_std_overlord_change+np.asarray(sameRowAlliedWeights)).tolist()
     single_overlord_weights_adjacent_allied = (np.random.rand(weight_zones,board_size)*one_std_overlord_change+np.asarray(adjacentRowAlliedWeights)).tolist()
     single_overlord_weights_same_enemy = (np.random.rand(weight_zones,board_size)*one_std_overlord_change+np.asarray(sameRowEnemyWeights)).tolist()
     single_overlord_weights_adjacent_enemy = (np.random.rand(weight_zones,board_size)*one_std_overlord_change+np.asarray(adjacentRowEnemyWeights)).tolist()
->>>>>>> 24c87183d24774f355ae8e8d0d2bab4b4ba389dc
 
     return single_pawn_bias_L1, single_pawn_weights_L1, single_pawn_bias_L2, single_pawn_weights_L2, single_overlord_weights_same_allied, single_overlord_weights_adjacent_allied, single_overlord_weights_same_enemy, single_overlord_weights_adjacent_enemy
 
@@ -691,17 +679,12 @@ def new_generation():
     fitnesses = [[x, 0] for x in range(population_size)]
 
 def train(code_container1,args):
-
-<<<<<<< HEAD
     #test_generation(code_container1, args)
     #return;
-=======
 
     # save_weights(1)
     # #test_generation(code_container1, args)
     # return;
-
->>>>>>> 24c87183d24774f355ae8e8d0d2bab4b4ba389dc
 
     global example_bots_list
     random_seed = random.randint(0,1000000)
