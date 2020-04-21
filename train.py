@@ -391,7 +391,7 @@ def save_weights(best_bot):
     
     os.mkdir(weights_dir+newDir)
     
-    #all weights
+    # all weights
     f=open(weights_dir+newDir+"/all_weights.txt", "w")
 
     #pawn weights
