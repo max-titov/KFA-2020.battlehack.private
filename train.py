@@ -371,6 +371,110 @@ def turn(game, bot_index_white, bot_index_black):
     if game.running:
         game.queue[0], game.queue[1] = game.queue[1], game.queue[0] # Alternate spawn order of Overlords
 
+<<<<<<< HEAD
+=======
+# WRITING TO FILE SYSTEM #
+
+def dir_name_generator(num):
+    dirLen = 4
+    newDir = ""
+    while len(newDir)+len(str(num)) < dirLen:
+        newDir=newDir+"0"
+    return newDir+str(num)
+
+def save_weights(best_bot):
+    newDir = dir_name_generator(generation)
+    
+    os.mkdir(weights_dir+newDir)
+    
+    # all weights
+    f=open(weights_dir+newDir+"/all_weights.txt", "w")
+
+    #pawn weights
+    for i in range(len(pawn_bias_L1)):
+        for j in range(len(pawn_bias_L1[0])):
+            f.write("%f\n"%pawn_bias_L1[i][j])
+
+    for i in range(len(pawn_weights_L1)):
+        for j in range(len(pawn_weights_L1[0])):
+            for k in range(len(pawn_weights_L1[0][0])):
+                f.write("%f\n"%pawn_weights_L1[i][j][k])
+
+    for i in range(len(pawn_bias_L2)):
+        for j in range(len(pawn_bias_L2[0])):
+            f.write("%f\n"%pawn_bias_L2[i][j])
+
+    for i in range(len(pawn_weights_L2)):
+        for j in range(len(pawn_weights_L2[0])):
+            for k in range(len(pawn_weights_L2[0][0])):
+                f.write("%f\n"%pawn_weights_L2[i][j][k])
+
+    #overlord weights
+    for i in range(len(overlord_weights_same_allied)):
+        for j in range(len(overlord_weights_same_allied[0])):
+            for k in range(len(overlord_weights_same_allied[0][0])):
+                f.write("%f\n"%overlord_weights_same_allied[i][j][k])
+
+    for i in range(len(overlord_weights_adjacent_allied)):
+        for j in range(len(overlord_weights_adjacent_allied[0])):
+            for k in range(len(overlord_weights_adjacent_allied[0][0])):
+                f.write("%f\n"%overlord_weights_adjacent_allied[i][j][k])
+
+    for i in range(len(overlord_weights_same_enemy)):
+        for j in range(len(overlord_weights_same_enemy[0])):
+            for k in range(len(overlord_weights_same_enemy[0][0])):
+                f.write("%f\n"%overlord_weights_same_enemy[i][j][k])
+
+    for i in range(len(overlord_weights_adjacent_enemy)):
+        for j in range(len(overlord_weights_adjacent_enemy[0])):
+            for k in range(len(overlord_weights_adjacent_enemy[0][0])):
+                f.write("%f\n"%overlord_weights_adjacent_enemy[i][j][k])
+
+    f.close() 
+
+    #best bot weights
+
+    f=open(weights_dir+newDir+"/best_bot.txt", "w")
+
+    #pawn weights
+    for j in range(len(pawn_bias_L1[0])):
+        f.write("%f\n"%pawn_bias_L1[best_bot][j])
+
+    for j in range(len(pawn_weights_L1[0])):
+        for k in range(len(pawn_weights_L1[0][0])):
+            f.write("%f\n"%pawn_weights_L1[best_bot][j][k])
+
+    for j in range(len(pawn_bias_L2[0])):
+        f.write("%f\n"%pawn_bias_L2[best_bot][j])
+
+    for j in range(len(pawn_weights_L2[0])):
+        for k in range(len(pawn_weights_L2[0][0])):
+            f.write("%f\n"%pawn_weights_L2[best_bot][j][k])
+
+    #overlord weights
+    for j in range(len(overlord_weights_same_allied[0])):
+        for k in range(len(overlord_weights_same_allied[0][0])):
+            f.write("%f\n"%overlord_weights_same_allied[best_bot][j][k])
+
+    for j in range(len(overlord_weights_adjacent_allied[0])):
+        for k in range(len(overlord_weights_adjacent_allied[0][0])):
+            f.write("%f\n"%overlord_weights_adjacent_allied[best_bot][j][k])
+
+    for j in range(len(overlord_weights_same_enemy[0])):
+        for k in range(len(overlord_weights_same_enemy[0][0])):
+            f.write("%f\n"%overlord_weights_same_enemy[best_bot][j][k])
+
+    for j in range(len(overlord_weights_adjacent_enemy[0])):
+        for k in range(len(overlord_weights_adjacent_enemy[0][0])):
+            f.write("%f\n"%overlord_weights_adjacent_enemy[best_bot][j][k])
+
+                    
+
+
+
+
+# GENETIC ALGORITHM #
+>>>>>>> 6d65b46ce225f8ee0c0a7bf8e6070175edc07da4
 
 def test_generation(code_container1, args): # runs matches between the bots to determine fitness values
     for m in range(matchups_per_bot):
