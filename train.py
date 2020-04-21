@@ -16,16 +16,15 @@ input_count = 76
 hidden_count = 20
 output_count = 2
 
-pawn_bias_L1 = np.zeros([population_size, hidden_count]).tolist()
-pawn_weights_L1 = np.zeros([population_size, input_count, hidden_count]).tolist()
-pawn_bias_L2 = np.zeros([population_size, output_count]).tolist()
-pawn_weights_L2 = np.zeros([population_size, hidden_count, output_count]).tolist()
+pawn_bias_L1 = np.zeros([population_size, hidden_count])
+pawn_weights_L1 = np.zeros([population_size, input_count, hidden_count])
+pawn_bias_L2 = np.zeros([population_size, output_count])
+pawn_weights_L2 = np.zeros([population_size, hidden_count, output_count])
 
 weight_zones = 3 # on border, one away from border, all other cases
 board_size = 16
 
 overlord_weights_same_allied = np.zeros([population_size, weight_zones, board_size]).tolist()
-
 overlord_weights_adjacent_allied = np.zeros([population_size, weight_zones, board_size]).tolist()
 overlord_weights_same_enemy = np.zeros([population_size, weight_zones, board_size]).tolist()
 overlord_weights_adjacent_enemy = np.zeros([population_size, weight_zones, board_size]).tolist()
@@ -156,12 +155,12 @@ def pawn_turn(game,bot,bot_num):
     else:
         first_layer = np.append(first_layer,0)
 
-    second_layer_len = 20
+    # second_layer_len = 20
     
-    test_weights = np.asarray([[random.randint(0,10) for x in range(hidden_count)] for y in range(input_count)])
-    test_bias = np.asarray([random.randint(0,10) for x in range(hidden_count)])
+    # test_weights = np.asarray([[random.randint(0,10) for x in range(hidden_count)] for y in range(input_count)])
+    # test_bias = np.asarray([random.randint(0,10) for x in range(hidden_count)])
 
-    second_layer = np.dot(first_layer,test_weights) + test_bias
+    second_layer = np.dot(first_layer,pawn_weights_L1[bot_num,:,:]) + pawn_bias_L1[bot_num,:]
 
     # for i in range(second_layer_len):
     #     value = test_bias[i]
@@ -172,11 +171,11 @@ def pawn_turn(game,bot,bot_num):
 
     #third layer
     
-    output_layer_len = 2
-    second_weights = np.asarray([[random.randint(0,10) for x in range(output_count)] for y in range(hidden_count)])
-    second_bias = np.asarray([random.randint(0,10) for x in range(output_layer_len)])
+    # output_layer_len = 2
+    # second_weights = np.asarray([[random.randint(0,10) for x in range(output_count)] for y in range(hidden_count)])
+    # second_bias = np.asarray([random.randint(0,10) for x in range(output_layer_len)])
 
-    output_layer = np.dot(second_layer,second_weights) + second_bias
+    output_layer = np.dot(second_layer,pawn_weights_L2[bot_num,:,:]) + pawn_bias_L2[bot_num,:]
     # for i in range(output_layer_len):
     #     tempValue = second_bias[i]
     #     for j in range(second_layer_len):
@@ -185,10 +184,10 @@ def pawn_turn(game,bot,bot_num):
     #dlog('Output layer values: ' + str(output_layer))
     
     if check_space_wrapper(game, bot, row + forward, col + 1, board_size) == opp_team: # up and right
-        game.capture(bot, row + forward, col + 1)
+        game.capture(row + forward, col + 1)
 
     elif check_space_wrapper(game, bot, row + forward, col - 1, board_size) == opp_team: # up and left
-        game.capture(bot, row + forward, col - 1)
+        game.capture(row + forward, col - 1)
 
     # otherwise try to move forward
     elif row + forward != -1 and row + forward != board_size and not check_space_wrapper(game, bot, row + forward, col, board_size) and output_layer[0] > output_layer[1]:
