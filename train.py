@@ -539,10 +539,18 @@ def generate_random_bot(one_std_overlord_change):
     single_pawn_weights_L1 = ((np.random.rand(input_count,hidden_count)-0.5)*2).tolist()
     single_pawn_bias_L2 = ((np.random.rand(output_count)-0.5)*2).tolist()
     single_pawn_weights_L2 = ((np.random.rand(hidden_count,output_count)-0.5)*2).tolist()
+<<<<<<< HEAD
     single_overlord_weights_same_allied = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(sameRowAlliedWeights)).tolist()
     single_overlord_weights_adjacent_allied = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(adjacentRowAlliedWeights)).tolist()
     single_overlord_weights_same_enemy = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(sameRowEnemyWeights)).tolist()
     single_overlord_weights_adjacent_enemy = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(adjacentRowEnemyWeights)).tolist()
+=======
+
+    single_overlord_weights_same_allied = (np.random.rand(weight_zones,board_size)*one_std_overlord_change+np.asarray(sameRowAlliedWeights)).tolist()
+    single_overlord_weights_adjacent_allied = (np.random.rand(weight_zones,board_size)*one_std_overlord_change+np.asarray(adjacentRowAlliedWeights)).tolist()
+    single_overlord_weights_same_enemy = (np.random.rand(weight_zones,board_size)*one_std_overlord_change+np.asarray(sameRowEnemyWeights)).tolist()
+    single_overlord_weights_adjacent_enemy = (np.random.rand(weight_zones,board_size)*one_std_overlord_change+np.asarray(adjacentRowEnemyWeights)).tolist()
+>>>>>>> 24c87183d24774f355ae8e8d0d2bab4b4ba389dc
 
     return single_pawn_bias_L1, single_pawn_weights_L1, single_pawn_bias_L2, single_pawn_weights_L2, single_overlord_weights_same_allied, single_overlord_weights_adjacent_allied, single_overlord_weights_same_enemy, single_overlord_weights_adjacent_enemy
 
@@ -684,8 +692,16 @@ def new_generation():
 
 def train(code_container1,args):
 
+<<<<<<< HEAD
     #test_generation(code_container1, args)
     #return;
+=======
+
+    # save_weights(1)
+    # #test_generation(code_container1, args)
+    # return;
+
+>>>>>>> 24c87183d24774f355ae8e8d0d2bab4b4ba389dc
 
     global example_bots_list
     random_seed = random.randint(0,1000000)
