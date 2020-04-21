@@ -380,6 +380,8 @@ def dir_name_generator(num):
         newDir=newDir+"0"
     return newDir+str(num)
 
+
+
 def save_weights(best_bot):
     newDir = dir_name_generator(generation)
     
@@ -467,10 +469,6 @@ def save_weights(best_bot):
             f.write("%f\n"%overlord_weights_adjacent_enemy[best_bot][j][k])
 
                     
-
-
-
-
 # GENETIC ALGORITHM #
 def test_generation(code_container1, args): # runs matches between the bots to determine fitness values
     for m in range(matchups_per_bot):
@@ -492,6 +490,8 @@ def test_generation(code_container1, args): # runs matches between the bots to d
                 turn(game,queue[bot1],queue[bot2])
             
             whiteScore,blackScore=calculate_score(game)
+
+            game.process_over()
 
             fitnesses[bot1][1] = fitnesses[bot1][1] + whiteScore
             fitnesses[bot2][1] = fitnesses[bot2][1] + blackScore
