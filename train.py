@@ -16,9 +16,9 @@ hidden_count = 20
 output_count = 2
 
 pawn_bias_L1 = np.zeros([population_size, hidden_count]).tolist()
-pawn_weights_L1 = np.zeros([population_size, hidden_count]).tolist()
+pawn_weights_L1 = np.zeros([population_size, input_count, hidden_count]).tolist()
 pawn_bias_L2 = np.zeros([population_size, output_count]).tolist()
-pawn_weights_L2 = np.zeros([population_size, output_count]).tolist()
+pawn_weights_L2 = np.zeros([population_size, hidden_count, output_count]).tolist()
 
 weight_zones = 3 # on border, one away from border, all other cases
 board_size = 16
@@ -429,29 +429,29 @@ def new_generation():
     survivors = cut_population()
     
     #Pawn stuff
-    new_layer1_bias = []
-    new_layer1_weights = []
-    new_layer2_bias = []
-    new_layer2_weights = []
+    new_layer1_bias = pawn_bias_L1
+    new_layer1_weights = pawn_weights_L1
+    new_layer2_bias = pawn_bias_L2
+    new_layer2_weights = pawn_weights_L2
     #Overlord stuff
-    new_same_allied = []
-    new_adjacent_allied = []
-    new_same_enemy = []
-    new_adjacent_enemy = []
+    new_same_allied = overlord_weights_same_allied
+    new_adjacent_allied = overlord_weights_adjacent_allied
+    new_same_enemy = overlord_weights_same_enemy
+    new_adjacent_enemy = overlord_weights_adjacent_enemy
 
     #reading in and duplicating survivors
     for j in range(population_size//dupe_number):
         for i in range(len(survivors)):
             #print("Survivor original index: "+str((survivors[i])[0]))
             #print("Survivor pawn bias: "+str(pawn_bias_L1[(survivors[i])[0]]))
-            new_layer1_bias.append(pawn_bias_L1[(survivors[i])[0]])
-            new_layer1_weights.append(pawn_bias_L2[(survivors[i])[0]])
-            new_layer2_bias.append(pawn_bias_L2[(survivors[i])[0]])
-            new_layer2_weights.append(pawn_weights_L2[(survivors[i])[0]])
-            new_same_allied.append(overlord_weights_same_allied[(survivors[i])[0]])
-            new_adjacent_allied.append(overlord_weights_adjacent_allied[(survivors[i])[0]])
-            new_same_enemy.append(overlord_weights_same_enemy[(survivors[i])[0]])
-            new_adjacent_enemy.append(overlord_weights_adjacent_enemy[(survivors[i])[0]])
+            new_layer1_bias[i] = pawn_bias_L1[(survivors[i])[0]]
+            new_layer1_weights[i] = pawn_bias_L2[(survivors[i])[0]]
+            new_layer2_bias[i] = pawn_bias_L2[(survivors[i])[0]]
+            new_layer2_weights[i] = pawn_weights_L2[(survivors[i])[0]]
+            new_same_allied[i] = overlord_weights_same_allied[(survivors[i])[0]]
+            new_adjacent_allied[i] = overlord_weights_adjacent_allied[(survivors[i])[0]]
+            new_same_enemy[i] = overlord_weights_same_enemy[(survivors[i])[0]]
+            new_adjacent_enemy[i] = overlord_weights_adjacent_enemy[(survivors[i])[0]]
 
     #creating and reading in randomly generated bots
     for i in range(population_size//random_number):
@@ -468,43 +468,55 @@ def new_generation():
         #print("New layer1 weights: "+str(new_layer1_weights[0]))
 
     #5% chance of a mutation within each item field --> changes are between -25% and 25%
+    print("pawn weights: " + str(pawn_weights_L1[0]))
     for i in range(population_size):
-        randFloat = random.uniform(0,1)
-        if randFloat < 0.05: new_layer1_bias[i] += random.uniform(-0.25, 0.25)*new_layer1_bias[i]
-        randFloat = random.uniform(0,1)
-        if randFloat < 0.05: new_layer1_weights[i] += random.uniform(-0.25, 0.25)*new_layer1_weights[i]
-        randFloat = random.uniform(0,1)
-        if randFloat < 0.05: new_layer2_bias[i] += random.uniform(-0.25, 0.25)*new_layer2_bias[i]
-        randFloat = random.uniform(0,1)
-        if randFloat < 0.05: new_layer2_weights[i] += random.uniform(-0.25, 0.25)*new_layer2_weights[i]
-        randFloat = random.uniform(0,1)
-        if randFloat < 0.05: new_same_allied[i] += random.uniform(-0.25, 0.25)*new_same_allied[i]
-        randFloat = random.uniform(0,1)
-        if randFloat < 0.05: new_adjacent_allied[i] += random.uniform(-0.25, 0.25)*new_adjacent_allied[i]
-        randFloat = random.uniform(0,1)
-        if randFloat < 0.05: new_same_enemy[i] += random.uniform(-0.25, 0.25)*new_same_enemy[i]
-        print("new same enemy: "+str(new_same_enemy[0]))
-        randFloat = random.uniform(0,1)
-        if randFloat < 0.05: new_adjacent_enemy[i] += random.uniform(-0.25, 0.25)*new_adjacent_enemy[i]
-
-    #1% chance of generating a completely new item value
-    for i in range(len(population_size)):
-        randFloat = random.uniform(0,1)
-        if randFloat < 0.01: new_layer1_bias[i] = random.uniform(-10,10)
-        randFloat = random.uniform(0,1)
-        if randFloat < 0.01: new_layer1_weights[i] = random.uniform(-10,10)
-        randFloat = random.uniform(0,1)
-        if randFloat < 0.01: new_layer2_bias[i] = random.uniform(-10,10)
-        randFloat = random.uniform(0,1)
-        if randFloat < 0.01: new_layer2_weights[i] = random.uniform(-10,10)
-        randFloat = random.uniform(0,1)
-        if randFloat < 0.01: new_same_allied[i] = random.uniform(-10,10)
-        randFloat = random.uniform(0,1)
-        if randFloat < 0.01: new_adjacent_allied[i] = random.uniform(-10,10)
-        randFloat = random.uniform(0,1)
-        if randFloat < 0.01: new_same_enemy[i] = random.uniform(-10,10)
-        randFloat = random.uniform(0,1)
-        if randFloat < 0.01: new_adjacent_enemy[i] = random.uniform(-10,10)
+        for j in range(len(pawn_bias_L1[0])):
+            randFloat = random.uniform(0,1)
+            if randFloat < 0.05:
+                new_layer1_bias[i][j] += random.uniform(-0.25, 0.25)*new_layer1_bias[i][j]
+            if randFloat == 0.99: 
+                new_layer1_bias[i][j] = random.uniform(-10,10)
+        for j in range(len(pawn_weights_L1[0])):
+            for z in range(20):
+                randFloat = random.uniform(0,1)
+                if randFloat < 0.05: 
+                    new_layer1_weights[i][j][z] += random.uniform(-0.25, 0.25)*new_layer1_weights[i][j][z]
+                if randFloat == 0.99:
+                    new_layer1_weights[i][j][z] = random.uniform(-10,10)
+        for j in range(len(pawn_bias_L2[0])):
+            randFloat = random.uniform(0,1)
+            if randFloat < 0.05: 
+                new_layer2_bias[i][j] += random.uniform(-0.25, 0.25)*new_layer2_bias[i][j]
+            if randFloat == 0.99:
+                new_layer2_bias[i][j] = random.uniform(-10,10)
+        for j in range(len(overlord_weights_same_allied[0])):
+            for z in range(len(overlord_weights_same_allied[0][0])):
+                randFloat = random.uniform(0,1)
+                if randFloat < 0.05: 
+                    new_same_allied[i][j][z] += random.uniform(-0.25, 0.25)*new_same_allied[i][j][z]
+                if randFloat == 0.99:
+                    new_same_allied[i] = random.uniform(-10,10)
+        for j in range(len(overlord_weights_adjacent_allied[0])):
+            for z in range(len(overlord_weights_adjacent_allied[0][0])):
+                randFloat = random.uniform(0,1)
+                if randFloat < 0.05: 
+                    new_adjacent_allied[i][j][z] += random.uniform(-0.25, 0.25)*new_adjacent_allied[i][j][z]
+                if randFloat == 0.99:
+                    new_adjacent_allied[i] = random.uniform(-10,10)
+        for j in range(len(overlord_weights_same_enemy[0])):
+            for z in range(len(overlord_weights_same_enemy[0][0])):
+                randFloat = random.uniform(0,1)
+                if randFloat < 0.05: 
+                    new_same_enemy[i][j][z] += random.uniform(-0.25, 0.25)*new_same_enemy[i][j][z]
+                if randFloat == 0.99:
+                    new_same_enemy[i] = random.uniform(-10,10)
+        for j in range(len(overlord_weights_adjacent_enemy[0])):
+            for z in range(len(overlord_weights_adjacent_enemy[0][0])):
+                randFloat = random.uniform(0,1)
+                if randFloat < 0.05: 
+                    new_adjacent_enemy[i][j][z] += random.uniform(-0.25, 0.25)*new_adjacent_enemy[i][j][z]
+                if randFloat == 0.99:
+                    new_adjacent_enemy[i] = random.uniform(-10,10)
 
     #reset fitnesses
     fitnesses = [[x, 0] for x in range(population_size)]
