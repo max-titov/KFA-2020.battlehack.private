@@ -294,8 +294,7 @@ def overlord_turn(game,bot,bot_num):
             weights[maxWeightCol] = -10000000
 
 
-
-# TRAINING STUFF BELOW #
+# GAME METHODS #
 
 def check_over(game):
     winner = False
@@ -381,6 +380,8 @@ def test_generation(args): # runs matches between the bots to determine fitness 
                 turn(game,1)
 
 
+# GENETIC ALGORITHM #
+
 def calculate_score(game): #Calculate the fitness of each individual bot
     global point_values_list, penalty_values_list
     game_board = game.board
@@ -407,6 +408,20 @@ def cut_population():
         new_generation.append(example_bots_list[len(example_bots_list) - i - 1])
     return new_generation
 
+def generate_random_bot(one_std_overlord_change):
+    single_pawn_bias_L1 = ((np.random.rand(hidden_count,input_count)-0.5)*2).tolist()
+    single_pawn_weights_L1 = ((np.random.rand(hidden_count,input_count)-0.5)*2).tolist()
+    single_pawn_bias_L2 = ((np.random.rand(output_count,hidden_count)-0.5)*2).tolist()
+    single_pawn_weights_L2 = ((np.random.rand(output_count,hidden_count)-0.5)*2).tolist()
+
+
+    single_overlord_weights_same_allied = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(sameRowAlliedWeights)).tolist()
+    single_overlord_weights_adjacent_allied = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(adjacentRowAlliedWeights)).tolist()
+    single_overlord_weights_same_enemy = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(sameRowEnemyWeights)).tolist()
+    single_overlord_weights_adjacent_enemy = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(adjacentRowEnemyWeights)).tolist()
+
+    return single_pawn_bias_L1, single_pawn_weights_L1, single_pawn_bias_L2, single_pawn_weights_L2, single_overlord_weights_same_allied, single_overlord_weights_adjacent_allied, single_overlord_weights_same_enemy, single_overlord_weights_adjacent_enemy
+
 #Create the new generation
 def new_generation():
     global population_size, cut_percentage, dupe_number, random_number
@@ -427,6 +442,14 @@ def new_generation():
         string = 'poop'
 
 def train(code_container1,code_container2,args):
+
+    single_pawn_bias_L1, single_pawn_weights_L1, single_pawn_bias_L2, single_pawn_weights_L2, single_overlord_weights_same_allied, single_overlord_weights_adjacent_allied, single_overlord_weights_same_enemy, single_overlord_weights_adjacent_enemy = generate_random_bot(10)
+
+    print(single_pawn_bias_L1)
+    print("\n\n\n\n")
+    print(single_overlord_weights_same_allied)
+    return
+
     global example_bots_list
     random_seed = random.randint(0,1000000)
     game = Game([code_container1, code_container2], board_size=args.board_size, max_rounds=args.max_rounds, 
