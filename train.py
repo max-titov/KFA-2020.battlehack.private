@@ -433,10 +433,12 @@ def cut_population():
     return new_generation
 
 def generate_random_bot(one_std_overlord_change):
-    single_pawn_bias_L1 = ((np.random.rand(hidden_count,input_count)-0.5)*2).tolist()
+    single_pawn_bias_L1 = ((np.random.rand(hidden_count)-0.5)*2).tolist()
     single_pawn_weights_L1 = ((np.random.rand(hidden_count,input_count)-0.5)*2).tolist()
-    single_pawn_bias_L2 = ((np.random.rand(output_count,hidden_count)-0.5)*2).tolist()
+    single_pawn_bias_L2 = ((np.random.rand(output_count)-0.5)*2).tolist()
     single_pawn_weights_L2 = ((np.random.rand(output_count,hidden_count)-0.5)*2).tolist()
+
+    print(((np.random.rand(output_count)-0.5)*2).shape)
 
 
     single_overlord_weights_same_allied = (np.random.standard_normal(size=(weight_zones,board_size))*one_std_overlord_change+np.asarray(sameRowAlliedWeights)).tolist()
@@ -561,6 +563,9 @@ def new_generation():
     fitnesses = [[x, 0] for x in range(population_size)]
 
 def train(code_container1,args):
+
+    s_l1_bias, s_l1_weight, s_l2_bias, s_l2_weight, s_same_a, s_adjacent_a, s_same_e, s_adjacent_e = generate_random_bot(15)
+    return
 
     #test_generation(code_container1, args)
     #return;
