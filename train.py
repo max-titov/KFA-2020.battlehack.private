@@ -10,7 +10,7 @@ from battlehack20 import CodeContainer, Game, BasicViewer, GameConstants
 from battlehack20.engine.game.team import Team
 from battlehack20.engine.game.robottype import RobotType
 
-population_size = 120
+population_size = 10
 
 input_count = 76
 hidden_count = 20
@@ -157,6 +157,7 @@ def pawn_turn(game,bot,bot_num):
         first_layer = np.append(first_layer,0)
 
     second_layer_len = 20
+    
     test_weights = np.asarray([[random.randint(0,10) for x in range(hidden_count)] for y in range(input_count)])
     test_bias = np.asarray([random.randint(0,10) for x in range(hidden_count)])
 
@@ -373,21 +374,33 @@ def turn(game, bot_index_white, bot_index_black):
     if game.running:
         game.queue[0], game.queue[1] = game.queue[1], game.queue[0] # Alternate spawn order of Overlords
 
-def test_generation(args): # runs matches between the bots to determine fitness values
+
+def test_generation(code_container1, args): # runs matches between the bots to determine fitness values
     for m in range(matchups_per_bot):
-        queue = random.shuffle(list(range(population_size))) #queue to determine matchups
+        queue = list(range(population_size)) #queue to determine matchups
+        random.shuffle(queue)
 
         i = 0
         while i < len(queue):
+            bot1 = queue[i]
+            bot2 = queue[i+1]
+            print("playing "+str(bot1)+" against "+ str(bot2))
             random_seed = random.randint(0,1000000)
             #TODO make the game NOT use the code_containers and use 
-            game = Game([code_container1, code_container2], board_size=args.board_size, max_rounds=args.max_rounds, 
+            game = Game([code_container1, code_container1], board_size=args.board_size, max_rounds=args.max_rounds, 
                     seed=random_seed, debug=False)
             while True:
                 if not game.running:
                     break
-                turn(game,queue[i],queue[i+1])
+                turn(game,queue[bot1],queue[bot2])
+            
+            whiteScore,blackScore=calculate_score(game)
+
+            fitnesses[bot1][1] = fitnesses[bot1][1] + whiteScore
+            fitnesses[bot2][1] = fitnesses[bot2][1] + blackScore
+
             i+=2
+    print(fitnesses)
 
 
 # GENETIC ALGORITHM #
@@ -405,7 +418,9 @@ def calculate_score(game): #Calculate the fitness of each individual bot
             elif game_board[row][col] and game_board[row][col].team == Team.WHITE:
                 whiteScore += point_values_list[len(point_values_list)-1-row]
                 blackPenalty += penalty_values_list[len(point_values_list)-1-row]
-    return 'White Score: ' + str(whiteScore - whitePenalty) + ', Black Score: ' + str(blackScore-blackPenalty)
+    whiteScore=whiteScore-whitePenalty
+    blackScore=blackScore-blackPenalty
+    return whiteScore,blackScore
     #return game.board
 
 #Cut population by 2/3 also change from example_bots_list to the real bots list
@@ -519,12 +534,15 @@ def new_generation():
     fitnesses = [[x, 0] for x in range(population_size)]
     print(new_same_allied)
 
-def train(code_container1,code_container2,args):
+def train(code_container1,args):
+
+    test_generation(code_container1, args)
+    return;
 
     global example_bots_list
     random_seed = random.randint(0,1000000)
     robot_count = 0
-    game = Game([code_container1, code_container2], board_size=args.board_size, max_rounds=args.max_rounds, 
+    game = Game([code_container1, code_container1], board_size=args.board_size, max_rounds=args.max_rounds, 
             seed=random_seed, debug=False)
     while True:
         if not game.running:
@@ -557,6 +575,6 @@ if __name__ == '__main__':
     # Here we check if the script is run using the -i flag.
     # If it is not, then we simply play the entire game.
 
-    train(code_container1, code_container2, args)
+    train(code_container1, args)
 
 
