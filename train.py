@@ -120,7 +120,7 @@ def test_generation(args): # runs matches between the bots to determine fitness 
                 turn(game)
 
 
-def calculate_score(game):
+def calculate_score(game): #Calculate the fitness of each individual bot
     global point_values_list, penalty_values_list
     game_board = game.board
     whiteScore, blackScore = 0,0
@@ -136,14 +136,20 @@ def calculate_score(game):
     return 'White Score: ' + str(whiteScore - whitePenalty) + ', Black Score: ' + str(blackScore-blackPenalty)
     #return game.board
 
-def cut_population(game):
+#Cut population by 2/3
+def cut_population():
     global example_bots_list
     example_bots_list.sort(key=lambda x: x[1])
     new_generation = []
     #Change example_bots_list to population_size
     for i in range(int(len(example_bots_list)/3)):
         new_generation.append(example_bots_list[len(example_bots_list) - i - 1])
-    example_bots_list = new_generation
+    return new_generation
+
+#Create the new generation
+def new_generation():
+    survivors = cut_population()
+    
 
 def train(code_container1,code_container2,args):
     global example_bots_list
@@ -162,9 +168,6 @@ def train(code_container1,code_container2,args):
     print(calculate_score(game))
 
     print(f'{game.winner} wins!')
-
-
-
 
 if __name__ == '__main__':
 
