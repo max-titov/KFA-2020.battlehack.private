@@ -473,7 +473,7 @@ def new_generation():
             #print("Survivor original index: "+str((survivors[i])[0]))
             #print("Survivor pawn bias: "+str(pawn_bias_L1[(survivors[i])[0]]))
             new_layer1_bias.append(pawn_bias_L1[(survivors[i])[0]])
-            new_layer1_weights[i] = pawn_bias_L2[(survivors[i])[0]]
+            new_layer1_weights[i] = pawn_weights_L1[(survivors[i])[0]]
             new_layer2_bias.append(pawn_bias_L2[(survivors[i])[0]])
             new_layer2_weights[i] = pawn_weights_L2[(survivors[i])[0]]
             new_same_allied[i] = overlord_weights_same_allied[(survivors[i])[0]]
@@ -485,13 +485,19 @@ def new_generation():
     for i in range(population_size//random_number):
         s_l1_bias, s_l1_weight, s_l2_bias, s_l2_weight, s_same_a, s_adjacent_a, s_same_e, s_adjacent_e = generate_random_bot(15)
         new_layer1_bias.append(s_l1_bias)
-        new_layer1_weights[i] = s_l1_weight
         new_layer2_bias.append(s_l2_bias)
+        #for j in range(len(s_l1_weight)):
+        new_layer1_weights[i] = s_l1_weight
+        #for j in range(len(s_l2_weight)):
         new_layer2_weights[i] = s_l2_weight
+        #for j in range(len(s_same_a)):
         new_same_allied[i] = s_same_a
+        #for j in range(len(s_adjacent_a)):
         new_adjacent_allied[i] = s_adjacent_a
-        new_same_enemy[i] = s_same_e
-        new_adjacent_enemy[i] = s_adjacent_e
+        for j in range(len(s_same_e)):
+            new_same_enemy[i][j] = s_same_e
+        for j in range(len(s_adjacent_e)):
+            new_adjacent_enemy[i][j] = s_adjacent_e
 
         #print("New layer1 weights: "+str(new_layer1_weights[0]))
     print("NSA len: "+str(len(new_same_allied)))
