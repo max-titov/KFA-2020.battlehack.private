@@ -471,6 +471,7 @@ def save_weights(best_bot):
                     
 # GENETIC ALGORITHM #
 def test_generation(code_container1, args): # runs matches between the bots to determine fitness values
+    global fitnesses
     for m in range(matchups_per_bot):
         queue = list(range(population_size)) #queue to determine matchups
         random.shuffle(queue)
