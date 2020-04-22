@@ -21,7 +21,7 @@ input_count = 76
 hidden_count = 20
 output_count = 2
 
-mutation_chance = 0.5
+mutation_chance = 0.07
 replacement_chance = 0.99
 
 pawn_bias_L1 = np.zeros([population_size, hidden_count])
@@ -65,9 +65,9 @@ sameRowEnemyWeights = [
 [1000,700,14,13,12,11,10,9,8,7,6,5,4,3,2,1]]
 
 adjacentRowAlliedWeights = [
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
+[5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5],
+[5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5],
+[5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5]]
 
 adjacentRowEnemyWeights = [
 [-500,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1],
@@ -665,7 +665,7 @@ def new_generation():
                 if randFloat < mutation_chance: 
                     new_same_allied[i][j][z] = new_same_allied[i][j][z] + random.uniform(-0.25, 0.25)*new_same_allied[i][j][z]
                 elif randFloat > replacement_chance:
-                    new_same_allied[i] = random.uniform(-10,10)
+                    new_same_allied[i][j][z] = random.uniform(-10,10)
         #print('success 5')
         for j in range(len(overlord_weights_adjacent_allied[0])):
             for z in range(len(overlord_weights_adjacent_allied[0][0])):
@@ -673,7 +673,7 @@ def new_generation():
                 if randFloat < mutation_chance: 
                     new_adjacent_allied[i][j][z] = new_adjacent_allied[i][j][z] + random.uniform(-0.25, 0.25)*new_adjacent_allied[i][j][z]
                 elif randFloat > replacement_chance:
-                    new_adjacent_allied[i] = random.uniform(-10,10)
+                    new_adjacent_allied[i][j][z] = random.uniform(-10,10)
         #print('success 6')
         for j in range(len(overlord_weights_same_enemy[0])):
             for z in range(len(overlord_weights_same_enemy[0][0])):
@@ -681,7 +681,7 @@ def new_generation():
                 if randFloat < mutation_chance: 
                     new_same_enemy[i][j][z] = new_same_enemy[i][j][z] + random.uniform(-0.25, 0.25)*new_same_enemy[i][j][z]
                 elif randFloat > replacement_chance:
-                    new_same_enemy[i] = random.uniform(-10,10)
+                    new_same_enemy[i][j][z] = random.uniform(-10,10)
         #print('success 7')
         for j in range(len(overlord_weights_adjacent_enemy[0])):
             for z in range(len(overlord_weights_adjacent_enemy[0][0])):
@@ -689,7 +689,7 @@ def new_generation():
                 if randFloat < mutation_chance: 
                     new_adjacent_enemy[i][j][z] = new_adjacent_enemy[i][j][z] + random.uniform(-0.25, 0.25)*new_adjacent_enemy[i][j][z]
                 elif randFloat > replacement_chance:
-                    new_adjacent_enemy[i] = random.uniform(-10,10)
+                    new_adjacent_enemy[i][j][z] = random.uniform(-10,10)
         #print('success 8')
 
     pawn_bias_L1, pawn_weights_L1, pawn_bias_L2, pawn_weights_L2, overlord_weights_same_allied, overlord_weights_adjacent_allied, overlord_weights_same_enemy, overlord_weights_adjacent_enemy = new_layer1_bias, new_layer1_weights, new_layer2_bias, new_layer2_weights, new_same_allied, new_adjacent_allied, new_same_enemy, new_adjacent_enemy
