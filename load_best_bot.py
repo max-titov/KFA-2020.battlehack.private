@@ -142,4 +142,4 @@ def load_best_bot(generation):
 
 np.set_printoptions(threshold=np.inf)
 np.set_printoptions(suppress=True)
-load_best_bot(400)
+load_best_bot(428)
