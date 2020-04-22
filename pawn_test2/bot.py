@@ -21,8 +21,6 @@ blackHalfway = 8
 
 #OVERLORD
 
-board_side = -1 #0 is left 1 is right
-
 sameRowAlliedPawnWeight = -64
 adjacentRowAlliedPawnWeight = 0
 
@@ -41,7 +39,7 @@ enemyOneAdjacentTileAwayWeight = -500
 
 alliedPawnAtEndWeight = -100
 
-DEBUG = 1
+DEBUG = 0
 def dlog(str):
 	if DEBUG > 0:
 		log(str)
@@ -99,9 +97,6 @@ def init():
 ############################ PAWN ############################
 ##############################################################
 
-def check(vertical,horizontal):
-	return check_space_wrapper(row + forward*vertical, col + horizontal)
-
 def pawn_init():
 	return
 
@@ -151,7 +146,7 @@ def equal_trade_if_move():
 	if check_right2(): enemyPawnCount+=1
 	if check_left2(): enemyPawnCount+=1
 
-	return myPawnCount >= enemyPawnCount
+	return enemyPawnCount == 0 or myPawnCount > enemyPawnCount 
 
 def close_to_enemy_side():
 	distance = abs(row-backRow)
@@ -168,9 +163,6 @@ def protecting_ally():
 			return True
 	return False
 
-def two_allies_behind():
-	return check(-1,0)==team and check(-2,0)==team
-
 def pawn_turn():
 	global row,col
 	row, col = get_location()
@@ -184,7 +176,7 @@ def pawn_turn():
 		capture_left()
 
 	# otherwise try to move forward
-	elif (can_move_forward() and ((equal_trade_if_move() and not protecting_ally()) or close_to_enemy_side() or two_allies_behind())):
+	elif (can_move_forward() and ((equal_trade_if_move() and not protecting_ally()) or close_to_enemy_side())):
 		#if row < whiteHalfway:
 		move_forward()
 	
@@ -196,10 +188,11 @@ def pawn_turn():
 ##############################################################
 
 def overlord_init():
-	global board_side
+	global backRow
 	if team == Team.WHITE:
-		board_side = 1
-	
+		backRow = 0
+	else:
+		backRow = board_size - 1
 
 def spawn_weights(board): # TODO: add adjecent col to weight value
 	weights = []
@@ -265,41 +258,18 @@ def maxIndex(list):
 	return maxIndex
 
 def overlord_turn():
-	global board_side
-	board = get_board()
-	weights = spawn_weights(board)
-	
-	if board_side == -1:
-		maxWeightCol = maxIndex(weights)
-		if maxWeightCol < board_side//2:
-			board_side = 1
-		else:
-			board_side = 0
-
-
-
-
-	half_board_size = board_size//2
-
-	if board_side == 0:
-		for i in range(half_board_size):
-			weights[i+half_board_size] = -100000
+	if team == Team.WHITE:
+		index = 0
 	else:
-		for i in range(half_board_size):
-			weights[i] = -100000
-
-	debug = ''
-	for i in range(board_size):
-		debug = debug + str(weights[i]) + ' '
-	dlog(debug)
-
-	for i in range(board_size):
-		maxWeightCol = maxIndex(weights)
-		if not check_space(backRow, maxWeightCol):
-			spawn(backRow, maxWeightCol)
+		index = board_size - 1
+	with open('test.txt', 'r') as f:
+		dlog(f.readline())
+	for _ in range(board_size):
+		i = random.randint(0, board_size - 1)
+		if not check_space(index, i):
+			spawn(index, i)
+			dlog('Spawned unit at: (' + str(index) + ', ' + str(i) + ')')
 			break
-		else:
-			weights[maxWeightCol] = -100000
 
 
 
