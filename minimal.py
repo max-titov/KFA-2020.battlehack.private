@@ -14,98 +14,97 @@ Feel free to change this script to suit your needs!
 
 Usage:
 
-    python3 run.py examplefuncsplayer examplefuncsplayer
+	python3 run.py examplefuncsplayer examplefuncsplayer
 
-        Runs examplefuncsplayer against itself. (You can omit the second argument if you want to.)
+		Runs examplefuncsplayer against itself. (You can omit the second argument if you want to.)
 
-    python3 -i run.py examplefuncsplayer examplefuncsplayer
+	python3 -i run.py examplefuncsplayer examplefuncsplayer
 
-        Launches an interactive shell where you can step through the game using step().
-        This is great for debugging.
-    
-    python3 -i run.py examplefuncsplayer exampelfuncsplayer --debug false
+		Launches an interactive shell where you can step through the game using step().
+		This is great for debugging.
+	
+	python3 -i run.py examplefuncsplayer exampelfuncsplayer --debug false
 
-        Runs the script without printing logs. Instead shows the viewer in real time.
+		Runs the script without printing logs. Instead shows the viewer in real time.
 
-    python3 run.py -h
+	python3 run.py -h
 
-        Shows a help message with more advanced options.
+		Shows a help message with more advanced options.
 """
 
 
 def step(number_of_turns=1):
-    """
-    This function steps through the game the specified number of turns.
+	"""
+	This function steps through the game the specified number of turns.
 
-    It prints the state of the game after every turn.
-    """
+	It prints the state of the game after every turn.
+	"""
 
-    for i in range(number_of_turns):
-        if not game.running:
-            print(f'{game.winner} has won!')
-            break
-        game.turn()
-        viewer.view()
+	for i in range(number_of_turns):
+		if not game.running:
+			print(f'{game.winner} has won!')
+			break
+		game.turn()
+		viewer.view()
 
 
 def play_all(code_container1,code_container2,args):
-    """
-    This function plays the entire game, and views it in a nice animated way.
+	"""
+	This function plays the entire game, and views it in a nice animated way.
 
-    If played in real time, make sure that the game does not print anything.
-    """
-    white_wins = 0
-    black_wins = 0
-    for game_num in range(args.games):
-        random_seed = random.randint(0,1000000)
-        game = Game([code_container1, code_container2], board_size=args.board_size, max_rounds=args.max_rounds, 
-                seed=random_seed, debug=False)
-        while True:
-            if not game.running:
-                break
-            game.turn()
+	If played in real time, make sure that the game does not print anything.
+	"""
+	white_wins = 0
+	black_wins = 0
+	for game_num in range(args.games):
+		random_seed = random.randint(0,1000000)
+		game = Game([code_container1, code_container2], board_size=args.board_size, max_rounds=args.max_rounds, 
+				seed=random_seed, debug=False)
+		while True:
+			if not game.running:
+				break
+			game.turn()
 
-        if str(game.winner) == "Team.WHITE":
-            white_wins+=1
-        else:
-            black_wins+=1
-        print(f'{game.winner} wins game {game_num}')
+		if str(game.winner) == "Team.WHITE":
+			white_wins+=1
+		else:
+			black_wins+=1
+		print(f'{game.winner} wins game {game_num}')
 
-    white_win_rate = float(white_wins)/float(args.games)*100
-    print(f'White won {white_wins} games out of {args.games} which is a {white_win_rate}% win rate')
+	white_win_rate = float(white_wins)/float(args.games)*100
+	print(f'White won {white_wins} games out of {args.games} which is a {white_win_rate}% win rate')
 
-    black_win_rate = float(black_wins)/float(args.games)*100
-    print(f'Black won {black_wins} games out of {args.games} which is a {black_win_rate}% win rate')
+	black_win_rate = float(black_wins)/float(args.games)*100
+	print(f'Black won {black_wins} games out of {args.games} which is a {black_win_rate}% win rate')
 
 
 if __name__ == '__main__':
 
-    # This is just for parsing the input to the script. Not important.
-    parser = argparse.ArgumentParser()
-    parser.add_argument('player', nargs='+', help="Path to a folder containing a bot.py file.")
-    parser.add_argument('--debug', default='true', choices=('true','false'), help="In debug mode (defaults to true), bot logs and additional information are displayed.")
-    parser.add_argument('--max-rounds', default=GameConstants.MAX_ROUNDS, type=int, help="Override the max number of rounds for faster games.")
-    parser.add_argument('--board-size', default=GameConstants.BOARD_SIZE, type=int, help="Override the board size for faster games.")
-    parser.add_argument('--games', default=1, type=int, help="How many games should run.")
-    args = parser.parse_args()
-    args.debug = args.debug == 'true'
+	# This is just for parsing the input to the script. Not important.
+	parser = argparse.ArgumentParser()
+	parser.add_argument('player', nargs='+', help="Path to a folder containing a bot.py file.")
+	parser.add_argument('--debug', default='true', choices=('true','false'), help="In debug mode (defaults to true), bot logs and additional information are displayed.")
+	parser.add_argument('--max-rounds', default=GameConstants.MAX_ROUNDS, type=int, help="Override the max number of rounds for faster games.")
+	parser.add_argument('--board-size', default=GameConstants.BOARD_SIZE, type=int, help="Override the board size for faster games.")
+	parser.add_argument('--games', default=1, type=int, help="How many games should run.")
+	args = parser.parse_args()
+	args.debug = args.debug == 'true'
 
-    # The faulthandler makes certain errors (segfaults) have nicer stacktraces.
-    faulthandler.enable() 
+	# The faulthandler makes certain errors (segfaults) have nicer stacktraces.
+	faulthandler.enable() 
 
-    # This is where the interesting things start!
+	# This is where the interesting things start!
 
-    # Every game needs 2 code containers with each team's bot code.
-    code_container1 = CodeContainer.from_directory(args.player[0])
-    code_container2 = CodeContainer.from_directory(args.player[1] if len(args.player) > 1 else args.player[0])
+	# Every game needs 2 code containers with each team's bot code.
+	code_container1 = CodeContainer.from_directory(args.player[0])
+	code_container2 = CodeContainer.from_directory(args.player[1] if len(args.player) > 1 else args.player[0])
 
-    # Here we check if the script is run using the -i flag.
-    # If it is not, then we simply play the entire game.
-    if not sys.flags.interactive:
-        play_all(code_container1, code_container2, args)
-
-    else:
-        # print out help message!
-        print("Run step() to step through the game.")
-        print("You also have access to the variables: game, viewer")
+	# Here we check if the script is run using the -i flag.
+	# If it is not, then we simply play the entire game.
+	if not sys.flags.interactive:
+		play_all(code_container1, code_container2, args)
+	else:
+		# print out help message!
+		print("Run step() to step through the game.")
+		print("You also have access to the variables: game, viewer")
 
