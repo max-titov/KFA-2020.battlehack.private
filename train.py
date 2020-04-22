@@ -13,7 +13,7 @@ from battlehack20.engine.game.robottype import RobotType
 
 weights_dir = "saved_weights/"
 
-population_size = 240
+population_size = 120
 
 generation = 0
 
