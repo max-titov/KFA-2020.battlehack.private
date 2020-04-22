@@ -258,6 +258,7 @@ def maxIndex(list):
 	return maxIndex
 
 def overlord_turn():
+	"""
 	board = get_board()
 	weights = spawn_weights(board)
 	
@@ -273,6 +274,17 @@ def overlord_turn():
 			break
 		else:
 			weights[maxWeightCol] = -100000
+	"""
+	if team == Team.WHITE:
+		index = 0
+	else:
+		index = board_size - 1
+	for _ in range(board_size):
+		i = random.randint(0, board_size - 1)
+		if not check_space(index, i):
+			spawn(index, i)
+			dlog('Spawned unit at: (' + str(index) + ', ' + str(i) + ')')
+			break
 
 
 
