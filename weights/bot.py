@@ -21,14 +21,16 @@ blackHalfway = 8
 
 #OVERLORD
 
+round_num = 0
+
 sameRowAlliedPawnWeight = -64
-adjacentRowAlliedPawnWeight = 0
+adjacentRowAlliedPawnWeight = 10
 
 sameRowEnemyPawnWeight = 16
 adjacentRowEnemyPawnWeight = 16
 
-sameRowAlliedPawnDistanceMultiplier = 1
-adjacentRowAlliedPawnDistanceMultiplier = 0
+sameRowAlliedPawnDistanceMultiplier = 2
+adjacentRowAlliedPawnDistanceMultiplier = -.5
 
 sameRowEnemyPawnDistanceMultiplier = -1
 adjacentRowEnemyPawnDistanceMultiplier = -1
@@ -55,7 +57,8 @@ def check_space_wrapper(r, c):
 		return None
 
 def turn():
-
+	global round_num
+	round_num+=1
 
 	if robottype is None:
 		init()
@@ -100,6 +103,9 @@ def init():
 def pawn_init():
 	return
 
+def dist_from_back():
+	return abs(row-backRow)
+
 def check_right():
 	return check_space_wrapper(row + forward, col + 1) == opp_team
 
@@ -140,13 +146,16 @@ def can_move_forward():
 
 def equal_trade_if_move():
 	myPawnCount = 0
-	if check_right_adjacent_ally() and not check_left_adjacent_ally_under_attack(): myPawnCount+=1
-	if check_left_adjacent_ally() and not check_left_adjacent_ally_under_attack(): myPawnCount+=1
+	if check_right_adjacent_ally() and not check_left_adjacent_ally_under_attack(): 
+		myPawnCount+=1
+	if check_left_adjacent_ally() and not check_left_adjacent_ally_under_attack(): 
+		myPawnCount+=1
 	enemyPawnCount = 0
 	if check_right2(): enemyPawnCount+=1
 	if check_left2(): enemyPawnCount+=1
 
 	return myPawnCount >= enemyPawnCount
+
 
 def close_to_enemy_side():
 	distance = abs(row-backRow)
@@ -162,6 +171,9 @@ def protecting_ally():
 		if check_space_wrapper(row+forward*2, col) == opp_team or check_space_wrapper(row+forward*2, col-2) == opp_team: # ally will be under attack
 			return True
 	return False
+
+def at_halfway():
+	return dist_from_back() >= board_size//2
 
 def pawn_turn():
 	global row,col
@@ -266,13 +278,17 @@ def overlord_turn():
 		debug = debug + str(weights[i]) + ' '
 	dlog(debug)
 
-	for i in range(board_size):
-		maxWeightCol = maxIndex(weights)
-		if not check_space(backRow, maxWeightCol):
-			spawn(backRow, maxWeightCol)
-			break
-		else:
-			weights[maxWeightCol] = -100000
+	if round_num < 6 and team == Team.BLACK:
+		spawn(backRow, board_size-1-round_num)
+	else:	
+
+		for i in range(board_size):
+			maxWeightCol = maxIndex(weights)
+			if not check_space(backRow, maxWeightCol):
+				spawn(backRow, maxWeightCol)
+				break
+			else:
+				weights[maxWeightCol] = -100000
 
 
 
