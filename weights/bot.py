@@ -270,6 +270,7 @@ def maxIndex(list):
 	return maxIndex
 
 def overlord_turn():
+
 	board = get_board()
 	weights = spawn_weights(board)
 	
